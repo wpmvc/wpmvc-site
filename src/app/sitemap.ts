@@ -7,7 +7,7 @@ const siteUrl = 'https://wpmvc.com'
 // All static routes — keep in sync with content/ directory structure
 const docRoutes: string[] = [
   '/docs',
-  '/docs/get-started',
+  '/docs/installation',
   '/docs/routing',
   '/docs/database',
   '/docs/jskit/admin-sidebar',

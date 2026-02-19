@@ -147,8 +147,8 @@ export function LandingPage() {
         </p>
         
         <div style={styles.ctaGroup}>
-          <a href="/docs/get-started" style={styles.primaryBtn}>
-            Get Started
+          <a href="/docs/installation" style={styles.primaryBtn}>
+            Installation
           </a>
           <a href="https://github.com/wpmvc/wpmvc" target="_blank" style={styles.secondaryBtn}>
             View on GitHub
@@ -246,8 +246,8 @@ export function LandingPage() {
           {/* Smaller Cards */}
           {[
             { title: "Middleware", desc: "Filter and inspect HTTP requests entering your application routes.", link: "/docs/routing" },
-            { title: "Artisan CLI", desc: "Scaffold boilerplate code and automate development tasks with ease.", link: "/docs/get-started" },
-            { title: "Dependency Injection", desc: "Decoupled logic using a powerful container-based DI system.", link: "/docs/get-started" },
+            { title: "Artisan CLI", desc: "Scaffold boilerplate code and automate development tasks with ease.", link: "/docs/installation" },
+            { title: "Dependency Injection", desc: "Decoupled logic using a powerful container-based DI system.", link: "/docs/installation" },
             { title: "JSKit Fields", desc: "Build complex forms with declarative React field components.", link: "/docs/jskit/fields" },
             { title: "Admin Sidebar", desc: "Customizable React-based sidebar navigation for WordPress.", link: "/docs/jskit/admin-sidebar" }
           ].map((item, i) => (
@@ -258,7 +258,7 @@ export function LandingPage() {
           ))}
 
           {/* Dark Release Card */}
-          <a href="/docs/get-started" className="feature-card-dark">
+          <a href="/docs/installation" className="feature-card-dark">
             <div>
               <div style={{ display: 'flex', gap: '8px', marginBottom: '24px' }}>
                 {[1, 2, 3, 4, 5, 6].map(i => (

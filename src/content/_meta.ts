@@ -1,6 +1,6 @@
 export default {
   index: '',
-  'get-started': '',
+  installation: '',
   routing: '',
   database: '',
   jskit: ''
