@@ -5,6 +5,8 @@ import { Footer, Layout, Navbar } from 'nextra-theme-docs'
 import { Head } from 'nextra/components'
 import { getPageMap } from 'nextra/page-map'
 import 'nextra-theme-docs/style.css'
+import './globals.css'
+import { FooterThemeSwitch } from '../components/FooterThemeSwitch'
 
 // Update this to your production URL
 const siteUrl = 'https://wpmvc.com'
@@ -74,7 +76,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <Navbar
       logo={
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <img src="/logo.svg" alt="WPMVC Logo" style={{ height: '36px', width: 'auto' }} />
+          <img src="/logo.svg" alt="WPMVC Logo" className="dark:hidden" style={{ height: '36px', width: 'auto' }} />
+          <img src="/logo-white.svg" alt="WPMVC Logo" className="hidden dark:block" style={{ height: '36px', width: 'auto' }} />
         </div>
       }
       projectLink="https://github.com/wpmvc/wpmvc"
@@ -87,12 +90,15 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body suppressHydrationWarning>
         <Layout
           navbar={navbar}
+          darkMode={true}
           footer={
             <Footer>
               <div style={{ display: 'flex', flexDirection: 'column', width: '100%', gap: '24px' }}>
+                <FooterThemeSwitch />
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <img src="/logo.svg" alt="WPMVC Logo" style={{ height: '24px', width: 'auto', filter: 'grayscale(1) opacity(0.7)' }} />
+                    <img src="/logo.svg" alt="WPMVC Logo" className="dark:hidden" style={{ height: '24px', width: 'auto', filter: 'grayscale(1) opacity(0.7)' }} />
+                    <img src="/logo-white.svg" alt="WPMVC Logo" className="hidden dark:block" style={{ height: '24px', width: 'auto', filter: 'grayscale(1) opacity(0.7)' }} />
                     <span style={{ fontSize: '14px', color: '#666', fontWeight: 500 }}>
                       Built for modern WordPress development.
                     </span>
