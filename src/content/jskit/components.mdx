@@ -1,0 +1,323 @@
+---
+sidebarTitle: Components
+title: UI Components
+description: A collection of UI components specifically designed for WordPress Admin interfaces, styled with the WPMVC design system.
+---
+
+# UI Components
+
+The `@wpmvc/components` package provides a collection of UI components specifically designed for WordPress Admin interfaces. These components are modern wrappers around `@wordpress/components`, styled with the `@wpmvc/colors` design system and `styled-components`.
+
+## Installation
+
+Add the package to your project:
+
+```sh npm2yarn
+npm install @wpmvc/components
+```
+
+## Core Principles
+
+1.  **WordPress Native**: Most components extend standard WordPress components to ensure compatibility and a familiar feel.
+2.  **Design System Integration**: Styles are powered by `--wpmvc-` CSS variables.
+3.  **Styled Components**: Uses `styled-components` for internal styling.
+
+---
+
+## Available Components
+
+### Button
+A wrapper around the WordPress `Button` component with branded styling for primary and secondary variants.
+
+```tsx
+import { Button } from '@wpmvc/components';
+
+const Example = () => (
+    <div style={{ display: 'flex', gap: '10px' }}>
+        <Button variant="primary">Primary Action</Button>
+        <Button variant="secondary">Secondary Action</Button>
+    </div>
+);
+```
+
+### Badge
+A versatile badge component for displaying status, tags, or counts.
+
+```tsx
+import { Badge } from '@wpmvc/components';
+
+const Example = () => (
+    <>
+        <Badge variant="success">Active</Badge>
+        <Badge variant="error">Error</Badge>
+        <Badge variant="warning">Pending</Badge>
+        <Badge variant="info">New</Badge>
+        <Badge variant="default">Draft</Badge>
+    </>
+);
+```
+
+### Tabs
+A simplified tab system for organizing content.
+
+```tsx
+import { Tabs } from '@wpmvc/components';
+
+const items = {
+    general: {
+        label: 'General',
+        children: <div>General Settings Content</div>
+    },
+    advanced: {
+        label: 'Advanced',
+        children: <div>Advanced Settings Content</div>,
+        disabled: false
+    }
+};
+
+const Example = () => (
+    <Tabs items={items} onChange={(key) => console.log('Tab changed:', key)} />
+);
+```
+
+### Text (Input)
+A styled text input component that supports "variables" (dropdown menu for inserting predefined placeholders/tokens).
+
+```tsx
+import { Text } from '@wpmvc/components';
+
+const variables = [
+    { label: 'Site Name', value: '{site_name}' },
+    { label: 'Admin Email', value: '{admin_email}' }
+];
+
+const Example = () => (
+    <Text 
+        label="Message Template" 
+        value={myValue} 
+        onChange={(val) => setMyValue(val)} 
+        variables={variables}
+    />
+);
+```
+
+### Checkbox
+Branded checkbox component.
+
+```tsx
+import { Checkbox } from '@wpmvc/components';
+
+const Example = () => (
+    <Checkbox 
+        label="Enable Feature" 
+        checked={true} 
+        onChange={(val) => console.log(val)} 
+        description="This will enable the experimental feature."
+    />
+);
+```
+
+### Clipboard
+A "click to copy" component with visual feedback.
+
+```tsx
+import { Clipboard } from '@wpmvc/components';
+
+const Example = () => (
+    <Clipboard 
+        text="COPY-ME-123" 
+        timeout={3000} 
+        onCopied={() => alert('Copied!')} 
+    />
+);
+```
+
+### ImageChoice
+Radio selection with images and optional badges (e.g., PRO, Coming Soon).
+
+```tsx
+import { ImageChoice } from '@wpmvc/components';
+
+const options = [
+    { value: 'layout-1', label: 'Classic', image: 'url/to/img1.png' },
+    { value: 'layout-2', label: 'Modern', image: 'url/to/img2.png', isPro: true },
+    { value: 'layout-3', label: 'Grid', image: 'url/to/img3.png', isComingSoon: true },
+];
+
+const Example = () => (
+    <ImageChoice 
+        label="Select Layout" 
+        options={options} 
+        value="layout-1" 
+        onChange={(val) => setVal(val)} 
+        perRow={3}
+    />
+);
+```
+
+### Modal
+Stylized dialog component with header actions and footer support.
+
+```tsx
+import { Modal, Button } from '@wpmvc/components';
+
+const Example = () => (
+    <Modal 
+        isOpen={true} 
+        title="Settings" 
+        onClose={() => setOpen(false)}
+        footer={<Button variant="primary">Save</Button>}
+    >
+        <p>Modal content goes here...</p>
+    </Modal>
+);
+```
+
+### Notice
+Branded notification messages.
+
+```tsx
+import { Notice } from '@wpmvc/components';
+
+const Example = () => (
+    <Notice status="success" isDismissible={false}>
+        Operation completed successfully!
+    </Notice>
+);
+```
+
+### Radio
+Standard or boxed radio button group.
+
+```tsx
+import { Radio } from '@wpmvc/components';
+
+const Example = () => (
+    <Radio 
+        label="Status"
+        options={[
+            { label: 'Active', value: 'active', description: 'Enable globally' },
+            { label: 'Draft', value: 'draft' }
+        ]}
+        value="active"
+        variation="boxed" // Use 'boxed' for cards
+        onChange={(val) => console.log(val)}
+    />
+);
+```
+
+### Select (Advanced)
+A powerful select component powered by `react-select`. Supports local options or fetching from a remote REST API.
+
+```tsx
+import { Select } from '@wpmvc/components';
+
+const Example = () => (
+    <>
+        {/* Local Options */}
+        <Select 
+            options={[ { value: '1', label: 'One' } ]} 
+            onChange={val => console.log(val)} 
+        />
+        
+        {/* Remote API Options */}
+        <Select 
+            optionsApi="/wp/v2/posts" 
+            onChange={val => console.log(val)} 
+            isMulti={true}
+        />
+    </>
+);
+```
+
+### Slider
+Range control with optional unit support (px, %, em, etc.).
+
+```tsx
+import { Slider } from '@wpmvc/components';
+
+const Example = () => (
+    <Slider 
+        label="Font Size" 
+        value="16px" 
+        unit={true} 
+        onChange={(val) => setVal(val)} 
+    />
+);
+```
+
+### Switch
+Branded toggle switch with a loading state.
+
+```tsx
+import { Switch } from '@wpmvc/components';
+
+const Example = () => (
+    <Switch 
+        label="Maintenance Mode" 
+        checked={isActive} 
+        isLoading={isUpdating}
+        onChange={(val) => setIsActive(val)} 
+    />
+);
+```
+
+### Table (DataViews)
+A powerful data table component powered by `@wordpress/dataviews`.
+
+```tsx
+import { Table } from '@wpmvc/components';
+
+const Example = () => (
+    <Table 
+        items={data} 
+        total={100} 
+        fields={[
+            { id: 'id', label: 'ID' },
+            { id: 'name', label: 'Name' }
+        ]}
+        refresh={(params) => fetchData(params)}
+    />
+);
+```
+
+### ToggleGroup
+A group of segmented buttons for single selection.
+
+```tsx
+import { ToggleGroup } from '@wpmvc/components';
+
+const Example = () => (
+    <ToggleGroup 
+        label="Size"
+        options={[
+            { label: 'Small', value: 'sm' },
+            { label: 'Large', value: 'lg' }
+        ]}
+        value="sm"
+        onChange={(val) => setVal(val)}
+    />
+);
+```
+
+---
+
+## Theming
+
+This package requires `@wpmvc/colors` to be configured in your application to display colors correctly. Ensure `<ColorVariables />` is present at the root of your application.
+
+```tsx
+import { ColorVariables } from '@wpmvc/colors';
+import { Button } from '@wpmvc/components';
+
+const App = () => (
+    <>
+        <ColorVariables />
+        <Button variant="primary">Styled Button</Button>
+    </>
+);
+```
+
+## Contributing
+
+Contributions are welcome! Please open an issue or submit a pull request if you'd like to contribute to the project.

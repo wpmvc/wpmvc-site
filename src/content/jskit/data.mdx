@@ -1,0 +1,166 @@
+---
+sidebarTitle: Data
+title: Data Management
+description: The @wpmvc/data package provides a standardized way to manage application state in WordPress-based React applications using @wordpress/data.
+---
+
+# Data Management
+
+The `@wpmvc/data` package provides a standardized way to manage application state in WordPress-based React applications using `@wordpress/data`. It simplifies the creation of Redux-based stores for CRUD operations and key-value management.
+
+## Installation
+
+Add the package to your project:
+
+```sh npm2yarn
+npm install @wpmvc/data
+```
+
+## Types of Stores
+
+The package supports two main types of stores:
+
+1.  **CRUD Store**: Designed for managing collections of data (e.g., Posts, Products, Logs) via REST API endpoints.
+2.  **Values Store**: Designed for managing key-value pairs or settings (e.g., Plugin settings).
+
+---
+
+## 1. CRUD Store
+
+The CRUD store provides built-in actions and selectors for standard REST operations.
+
+### Registration
+
+Register a CRUD store by providing a unique name and the REST API path.
+
+```typescript
+import { registerCrudStore } from '@wpmvc/data';
+
+registerCrudStore({
+    name: 'my-plugin/products',
+    path: '/my-plugin/v1/products'
+});
+```
+
+### Available Actions
+
+- `create(payload)`: Creates a new item via POST.
+- `update(id, payload)`: Updates an item via PATCH.
+- `destroy(id)`: Deletes an item via DELETE.
+- `refresh(params?)`: Invalidates resolution and fetches data again.
+- `resetQueryParamsAndRefresh()`: Resets query params to default and refreshes data.
+- `setItem(item)`: Manually set a single item in the store.
+- `setItems(items)`: Manually set the list of items.
+
+### Available Selectors
+
+- `get()`: Returns the list of items.
+- `getItem()`: Returns the currently active single item.
+- `getQueryParams()`: Returns current query parameters (search, page, perPage, sort).
+- `getPath()`: Returns the registered API path.
+
+---
+
+## 2. Values Store
+
+The Values store is optimized for managing flat objects or settings.
+
+### Registration
+
+```typescript
+import { registerValuesStore } from '@wpmvc/data';
+
+registerValuesStore({
+    name: 'my-plugin/settings',
+    path: '/my-plugin/v1/settings'
+});
+```
+
+### Available Actions
+
+- `set(keyOrObject, value?)`: Local update of values.
+- `save(data)`: Persists data to the server via POST.
+- `remove(key)`: Removes a key from the local state.
+- `refresh()`: Refetches data from the server.
+
+### Available Selectors
+
+- `get()`: Returns all values.
+- `getByKey(key)`: Returns a specific value.
+
+---
+
+## 3. React Hooks
+
+The package provides convenient hooks to interact with your stores in React components.
+
+### useCrudStoreData & useCrudStore
+
+```tsx
+import { useCrudStoreData, useCrudStore } from '@wpmvc/data';
+
+const MyComponent = () => {
+    // Select data
+    const { data: products, isResolved } = useCrudStoreData({ 
+        name: 'my-plugin/products', 
+        selector: 'get' 
+    });
+
+    // Get actions
+    const { create, destroy } = useCrudStore({ name: 'my-plugin/products' });
+
+    if (!isResolved) return <div>Loading...</div>;
+
+    return (
+        <ul>
+            {products.map(p => (
+                <li key={p.id}>
+                    {p.name} 
+                    <button onClick={() => destroy(p.id)}>Delete</button>
+                </li>
+            ))}
+        </ul>
+    );
+};
+```
+
+### useValuesStoreData & useValuesStore
+
+```tsx
+import { useValuesStoreData, useValuesStore } from '@wpmvc/data';
+
+const SettingsPanel = () => {
+    const { data: settings, isResolved } = useValuesStoreData({ name: 'my-plugin/settings' });
+    const { save, set } = useValuesStore({ name: 'my-plugin/settings' });
+
+    if (!isResolved) return <div>Loading...</div>;
+
+    return (
+        <div>
+            <input 
+                value={settings.api_key || ''} 
+                onChange={(e) => set('api_key', e.target.value)} 
+            />
+            <button onClick={() => save(settings)}>Save Settings</button>
+        </div>
+    );
+};
+```
+
+### useCrudQueryParams
+
+Used to access and manage the query state for CRUD stores (pagination, searching, sorting).
+
+```tsx
+import { useCrudQueryParams } from '@wpmvc/data';
+
+const Pagination = () => {
+    const queryParams = useCrudQueryParams({ name: 'my-plugin/products' });
+    
+    return <div>Current Page: {queryParams.page}</div>;
+};
+```
+
+## Contributing
+
+Contributions are welcome! Please open an issue or submit a pull request if you'd like to contribute to the project.

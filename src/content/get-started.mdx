@@ -1,0 +1,84 @@
+---
+title: Get Started
+description: Welcome to WpMVC — a modern WordPress plugin framework that brings simplicity, structure, and speed to plugin development.
+---
+
+import { Steps } from 'nextra/components'
+
+# 🚀 Installation Guide
+
+Welcome to **WpMVC** — a modern WordPress plugin framework that brings simplicity, structure, and speed to plugin development. With expressive syntax and a rich set of tools, WpMVC helps developers build high-quality plugins effortlessly.
+
+<Steps>
+
+### Create a New Plugin
+
+Start by scaffolding your plugin using Composer:
+
+```sh
+composer create-project wpmvc/wpmvc plugin-name
+```
+
+Replace `plugin-name` with your desired plugin folder name.
+
+### Navigate to Your Plugin Directory
+
+```sh
+cd plugin-name
+```
+
+### Run the Setup Wizard
+
+Configure your plugin details interactively:
+
+```sh
+php artisan app:setup
+```
+
+#### Setup Prompts Explained
+
+When prompted:
+
+* **Enter Plugin:**
+  This is the display name of your plugin.
+  *Example:* `Plugin Name`
+
+* **Enter plugin namespace:**
+  This is the PHP namespace used throughout your codebase.
+  *Example:* `PluginName`
+
+* **Enter plugin API namespace:**
+  This is the namespace for your REST API endpoints.
+  *Example:* `plugin-name`
+
+</Steps>
+
+---
+
+✅ That’s it — your plugin is now scaffolded and ready to build!
+
+## Artisan Command
+
+Run this command to see all available command lists:
+
+```sh
+php artisan
+```
+
+## Routing
+
+Check out the [Routing Documentation](https://github.com/wpmvc/routing) for more details.
+
+## Database
+
+Check out the [Database Documentation](https://github.com/wpmvc/database) for more details.
+
+## Regenerate Vendor Directory
+
+To re-generate the vendor folder, do **not** use `composer install` or `php artisan app:setup`. 
+
+Instead, use:
+
+```sh
+composer setup
+```

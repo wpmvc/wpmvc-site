@@ -1,0 +1,129 @@
+---
+sidebarTitle: Colors
+title: Color System
+description: The @wpmvc/colors package provides a unified color system for WordPress-based React applications.
+---
+
+# Color System
+
+The `@wpmvc/colors` package provides a unified color system for WordPress-based React applications. It manages a global color palette, generates CSS variables automatically, and provides React hooks for easy access.
+
+## Installation
+
+Add the package to your project:
+
+```sh npm2yarn
+npm install @wpmvc/colors
+```
+
+## Features
+
+- **Centralized Palette**: Managed via `@wordpress/data` for global accessibility.
+- **Auto-generated Variations**: Provide a base color, and the package automatically generates shades from 25 to 900 using CSS `color-mix`.
+- **CSS Variables**: Seamlessly injects CSS variables into the `:root` or specific sections.
+- **WordPress Admin Sync**: Bridges custom colors with standard WordPress admin theme variables.
+
+---
+
+## 1. Injecting CSS Variables
+
+To make the colors available as CSS variables throughout your application, use the `ColorVariables` component.
+
+### Basic Usage
+
+Place this component once in your application root.
+
+```tsx
+import { ColorVariables } from '@wpmvc/colors';
+
+const App = () => (
+    <>
+        <ColorVariables />
+        <MainContent />
+    </>
+);
+```
+
+### Overriding Colors
+
+You can override specific color groups or base colors via the `colors` prop.
+
+```tsx
+<ColorVariables 
+    colors={{
+        primary: '#3b82f6', // Will auto-generate shades 25-900 for blue
+        secondary: {
+            500: '#f43f5e',
+            600: '#e11d48'
+        }
+    }} 
+/>
+```
+
+---
+
+## 2. Accessing Colors in React
+
+Use the `useColors` hook to access the current color palette with full IntelliSense support.
+
+```tsx
+import { useColors } from '@wpmvc/colors';
+
+const MyComponent = () => {
+    const colors = useColors();
+
+    return (
+        <div style={{ color: colors.primary[500] }}>
+            The primary color is {colors.primary[500]}
+        </div>
+    );
+};
+```
+
+---
+
+## 3. WordPress Admin Integration
+
+The `ColorWrapper` component maps your custom colors to standard WordPress CSS variables, ensuring components like `@wordpress/components` match your brand style.
+
+```tsx
+import { ColorWrapper } from '@wpmvc/colors';
+
+const MySettingsPage = () => (
+    <ColorWrapper>
+        {/* WordPress components inside here will use your custom primary color */}
+        <Button variant="primary">Submit</Button>
+    </ColorWrapper>
+);
+```
+
+---
+
+## 4. CSS Variable Naming Convention
+
+By default, the package generates variables with the `--wpmvc-` prefix:
+
+- `--wpmvc-primary-500`
+- `--wpmvc-secondary-200`
+- `--wpmvc-success-500`
+- `--wpmvc-background-light`
+- `--wpmvc-text-muted`
+
+---
+
+## 5. Default Palette
+
+The default palette includes:
+
+- **primary**: Blueish (`#007cba`)
+- **secondary**: Pinkish (`#ec4899`)
+- **success**: Green (`#22c55e`)
+- **warning**: Amber (`#f59e0b`)
+- **error**: Red (`#ef4444`)
+- **gray**: Neutral (`#6b7280`)
+- **background**: `light` and `dark`
+- **text**: `light`, `dark`, and `muted`
+
+## Contributing
+
+Contributions are welcome! Please open an issue or submit a pull request if you'd like to contribute to the project.
