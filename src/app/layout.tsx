@@ -1,5 +1,6 @@
 /* eslint-env node */
 import React from 'react'
+import Script from 'next/script'
 import type { Metadata } from 'next'
 import { Footer, Layout, Navbar } from 'nextra-theme-docs'
 import { Head } from 'nextra/components'
@@ -88,9 +89,20 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang="en" dir="ltr" suppressHydrationWarning>
       <Head />
       <body suppressHydrationWarning>
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-ZFX5VRQCY7"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-ZFX5VRQCY7');
+          `}
+        </Script>
         <Layout
           navbar={navbar}
-          darkMode={true}
           footer={
             <Footer>
               <div style={{ display: 'flex', flexDirection: 'column', width: '100%', gap: '24px' }}>
