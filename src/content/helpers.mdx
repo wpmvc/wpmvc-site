@@ -1,0 +1,120 @@
+---
+title: Utilities & Helpers
+description: A high-performance collection of standardized utility functions designed for reliable WordPress application development.
+---
+
+import { Callout } from 'nextra/components'
+
+# Utilities & Helpers
+
+The **WpMVC Helpers** package is a collection of high-performance, reusable utility functions engineered to standardize common tasks in WordPress development. By providing a unified API for file management, array manipulation, and environment sensing, the library ensures consistency and reduces boilerplate across complex plugin ecosystems.
+
+---
+
+## Technical Integration
+
+### Installation
+
+Integrate the helper library into your project via Composer:
+
+```bash copy
+composer require wpmvc/helpers
+```
+
+---
+
+## Method Reference
+
+### Environment & System
+
+#### `get_plugin_version`
+Retrieves the semantic version of an installed plugin. Returns `null` if the plugin is not found or inactive.
+
+```php copy
+$version = Helpers::get_plugin_version( 'woocommerce' );
+// Output: "8.5.0"
+```
+
+#### `get_user_ip_address`
+Standardized methodology for retrieving the client's IP address. This implementation accounts for `HTTP_X_FORWARDED_FOR` and other proxy headers to ensure accuracy in load-balanced environments.
+
+```php copy
+$ip = Helpers::get_user_ip_address();
+```
+
+---
+
+### Media & File Management
+
+#### `upload_file`
+Automates the process of sideloading or uploading files to the WordPress Media Library. Encapsulates error handling and permission checks.
+
+```php copy
+try {
+    $attachment_id = Helpers::upload_file( $_FILES['my_file'] );
+} catch ( \Exception $e ) {
+    Log::error( 'Media upload failed', [ 'message' => $e->getMessage() ] );
+}
+```
+
+#### `delete_attachments_by_ids`
+Performs bulk deletion of media components.
+
+```php copy
+Helpers::delete_attachments_by_ids( [ 123, 456, 789 ] );
+```
+
+---
+
+### Data Transformation & Validation
+
+#### `maybe_json_decode`
+
+<Callout type="info">
+  Input is automatically validated before decoding. If the value is already structured or is an invalid JSON string, the original value is returned to prevent data loss.
+</Callout>
+
+A defensive decoding utility that attempts to parse a string as JSON.
+
+```php copy
+$data = Helpers::maybe_json_decode( '{"key":"value"}' ); // Returns ['key' => 'value']
+$text = Helpers::maybe_json_decode( 'Not JSON' );       // Returns 'Not JSON'
+```
+
+#### `array_merge_deep`
+Deeply merges two or more arrays. Unlike standard PHP merge functions, this retains nested structures by merging corresponding keys recursively.
+
+```php copy
+$merged = Helpers::array_merge_deep( 
+    [ 'a' => [ 'b' => 1 ] ], 
+    [ 'a' => [ 'c' => 2 ] ] 
+);
+// Result: [ 'a' => [ 'b' => 1, 'c' => 2 ] ]
+```
+
+#### `remove_null_values`
+Sanitizes data structures for API transport or database storage by stripping keys with null values.
+
+```php copy
+$clean = Helpers::remove_null_values( [ 'id' => 1, 'meta' => null ] );
+// Result: [ 'id' => 1 ]
+```
+
+#### `is_one_level_array`
+Validates the dimensionality of an array.
+
+```php copy
+$is_flat = Helpers::is_one_level_array( [ 'a', 'b', 'c' ] ); // true
+```
+
+---
+
+### Request Handling
+
+#### `request`
+Provides a bridge to the WordPress REST API infrastructure by generating a `WP_REST_Request` object from the current environment state (GET/POST/SERVER globals).
+
+```php copy
+$request = Helpers::request();
+$data = $request->get_params();
+```

@@ -1,0 +1,122 @@
+---
+title: Request Lifecycle
+description: Understand how WpMVC handles incoming requests, from WordPress initialization to final response.
+---
+
+# Request Lifecycle
+
+WpMVC manages the request lifecycle by abstracting WordPress hooks into a structured pipeline. This ensures that every request follows a predictable path, making debugging and extension straightforward.
+
+## Lifecycle Overview
+
+The following diagram illustrates the high-level orchestration of a request lifecycle, from the initial WordPress core hook to the final delivery.
+
+```mermaid
+flowchart TB
+    %% =========================
+    %% ENTRY POINT
+    %% =========================
+    WP["WordPress Core"]
+    Entry["Plugin Bootstrap<br/>(Lifecycle Manager)"]
+
+    WP --> Entry
+
+    %% =========================
+    %% APPLICATION CORE
+    %% =========================
+    subgraph Core["Application Core"]
+        direction TB
+        App["App (Singleton)"]
+        Container["Dependency Injection Container"]
+        Config["Configuration Manager"]
+
+        App <--> Container
+        App --> Config
+    end
+
+    Entry --> App
+
+    %% =========================
+    %% INITIALIZATION LAYER
+    %% =========================
+    subgraph Init["Service Initialization"]
+        direction TB
+        Providers["Service Providers"]
+        RouteSP["Route Service Provider"]
+        EnqueueSP["Asset Service Provider"]
+        CustomSP["Custom Providers<br/>(Menu, PostType, etc.)"]
+
+        Providers --> RouteSP
+        Providers --> EnqueueSP
+        Providers --> CustomSP
+    end
+
+    App --> Providers
+
+    %% =========================
+    %% REQUEST LIFECYCLE
+    %% =========================
+    subgraph Request["Request Lifecycle"]
+        direction TB
+        HTTP["HTTP / AJAX Request"]
+        Router["Router"]
+        Middleware["Middleware<br/>(Auth / Admin Guard)"]
+        Controller["API Controller"]
+
+        HTTP --> Router --> Middleware --> Controller
+    end
+
+    RouteSP -. Registers .-> Router
+
+    %% =========================
+    %% DATA LAYER
+    %% =========================
+    subgraph Data["Persistence Layer"]
+        direction TB
+        Model["Eloquent Model"]
+        DB["WordPress Database ($wpdb)"]
+
+        Model <--> DB
+    end
+
+    Controller <--> Model
+
+    %% =========================
+    %% PRESENTATION
+    %% =========================
+    subgraph Frontend["Presentation Layer"]
+        direction TB
+        Client["Modern Frontend<br/>(JSON Consumer)"]
+        Assets["Compiled Assets<br/>(JS / CSS Bundles)"]
+    end
+
+    Controller -- JSON Response --> Client
+    EnqueueSP -. Loads .-> Assets
+
+    %% =========================
+    %% STYLING
+    %% =========================
+    classDef core fill:#E3F2FD,stroke:#1565C0,stroke-width:2px;
+    classDef init fill:#FFF3E0,stroke:#EF6C00,stroke-width:1.5px;
+    classDef request fill:#E8F5E9,stroke:#2E7D32,stroke-width:1.5px;
+    classDef data fill:#F3E5F5,stroke:#6A1B9A,stroke-width:1.5px;
+    classDef external fill:#FAFAFA,stroke:#424242,stroke-dasharray:4 4;
+
+    class App,Container,Config core;
+    class Providers,RouteSP,EnqueueSP,CustomSP init;
+    class HTTP,Router,Middleware,Controller request;
+    class Model,DB data;
+    class Client,Assets external;
+```
+
+---
+
+## Internal Workflow
+
+1.  **Entry Point**: WordPress loads the plugin, triggering the lifecycle manager.
+2.  **App Bootstrapping**: The `App` singleton and `Container` are initialized.
+3.  **Provider Registration**: Service Providers are registered and their `boot` methods are executed.
+4.  **Routing**: The `Router` matches incoming HTTP/AJAX requests.
+5.  **Middleware Pipeline**: The request passes through any assigned middleware for validation or security.
+6.  **Controller Execution**: The controller handles business logic and interfaces with models.
+7.  **Response Delivery**: The results are returned as a JSON response or rendered view.

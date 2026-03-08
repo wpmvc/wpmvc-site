@@ -1,0 +1,151 @@
+---
+title: Middleware
+description: Learn how to use WpMVC Middleware to filter and intercept HTTP requests entering your application.
+---
+
+import { Callout } from 'nextra/components'
+
+# Middleware
+
+<a name="introduction"></a>
+## Introduction
+
+Middleware provide a convenient mechanism for inspecting and filtering HTTP requests entering your application. For example, WpMVC includes a middleware that verifies the user of your application is authenticated. If the user is not authenticated, the middleware will return an error response. However, if the user is authenticated, the middleware will allow the request to proceed further into the application.
+
+Additional middleware can be written to perform a variety of tasks besides authentication. For example, a logging middleware might log all incoming requests to your application. There are several middleware included in the WpMVC framework, including middleware for authentication and CSRF protection. All of these middleware are located in the `app/Http/Middleware` directory of your plugin.
+
+---
+
+<a name="generating-middleware"></a>
+## Generating Middleware
+
+To create a new middleware, use the `make:middleware` Artisan command:
+
+```bash copy
+php artisan make:middleware EnsureTokenIsValid
+```
+
+This command will place a new `EnsureTokenIsValid` class within your `app/Http/Middleware` directory.
+
+---
+
+<a name="defining-middleware"></a>
+## Defining Middleware
+
+To create a new middleware, you should implement the `MyPluginNamespace\WpMVC\Routing\Contracts\Middleware` interface. This interface requires a `handle` method which receives a `WP_REST_Request` instance and a `$next` closure.
+
+The `handle` method should return the result of the `$next` call, or a `WP_Error` if the request should be rejected. In WpMVC, returning `false` or a `WP_Error` from the `handle` method will terminate the request. Returning `WP_Error` allows you to provide a specific error message and status code to the client.
+
+```php copy
+<?php
+
+namespace MyPluginNamespace\App\Http\Middleware;
+
+defined( "ABSPATH" ) || exit;
+
+use MyPluginNamespace\WpMVC\Routing\Contracts\Middleware;
+use WP_REST_Request;
+use WP_Error;
+
+class EnsureTokenIsValid implements Middleware
+{
+    /**
+     * Handle an incoming request.
+     *
+     * @param  WP_REST_Request  $wp_rest_request The current request instance.
+     * @param  mixed           $next            The next middleware closure in the stack.
+     * @return bool|WP_Error Returns true to continue, false to forbid, or WP_Error.
+     */
+    public function handle( WP_REST_Request $wp_rest_request, $next ) {
+        if ( $wp_rest_request->get_param( 'token' ) !== 'my-secret-token' ) {
+            return new WP_Error( 'invalid_token', 'The provided token is invalid.', [ 'status' => 403 ] );
+        }
+
+        return $next( $wp_rest_request );
+    }
+}
+```
+
+As you can see, if the given `token` does not match our secret token, the middleware will return a `WP_Error` to the caller; otherwise, the request will be passed further into the application by calling the `$next` callback with the `$wp_rest_request`.
+
+<Callout type="info">
+  All middleware are resolved via the [service container](/architecture/container), so you may type-hint any dependencies you need within a middleware's constructor.
+</Callout>
+
+---
+
+<a name="registering-middleware"></a>
+## Registering Middleware
+
+### Assigning Middleware to Routes
+
+If you would like to assign middleware to specific routes, you should first assign the middleware a key in your `config/app.php` file. By default, the `middleware` key of this file contains entries for the middleware included with WpMVC. To add your own, simply append it to this list and assign it a key of your choosing:
+
+```php copy
+// config/app.php
+
+defined( "ABSPATH" ) || exit;
+
+use MyPluginNamespace\App\Http\Middleware\Authenticate;
+use MyPluginNamespace\App\Http\Middleware\EnsureIsUserAdmin;
+
+'middleware' => [
+    'auth'  => Authenticate::class,
+    'admin' => EnsureIsUserAdmin::class,
+],
+```
+
+Once the middleware has been defined in the configuration file, you may use the `middleware` method to assign the middleware to a route:
+
+```php copy
+use MyPluginNamespace\WpMVC\Routing\Route;
+
+Route::get( 'profile', function () {
+    // ...
+} )->middleware( 'auth' );
+```
+
+You may assign multiple middleware to the route by passing an array of middleware names to the `middleware` method:
+
+```php copy
+Route::get( '/', function () {
+    // ...
+} )->middleware( [ 'first', 'second' ] );
+```
+
+When assigning middleware, you may also pass the fully qualified class name:
+
+```php copy
+use MyPluginNamespace\App\Http\Middleware\EnsureTokenIsValid;
+
+Route::get( 'profile', function () {
+    // ...
+} )->middleware( EnsureTokenIsValid::class );
+```
+
+---
+
+<a name="middleware-groups"></a>
+## Middleware Groups
+
+Sometimes you may want to group several middleware under a single key to make them easier to assign to routes. You can accomplish this using the `group` method of the router. However, typically you will define these in your route files using route groups:
+
+```php copy
+Route::middleware( [ 'web' ] )->group( function () {
+    // ...
+} );
+```
+
+---
+
+<a name="sorting-middleware"></a>
+## Sorting Middleware
+
+Rarely, you may need your middleware to execute in a specific order but not have control over their order when they are assigned to the route. In WpMVC, middleware are executed in the order they are assigned to the route or group.
+
+---
+
+<a name="terminatable-middleware"></a>
+## Terminatable Middleware
+
+Sometimes a middleware may need to do some work after the HTTP response has already been sent to the browser. While WpMVC doesn't have a specific `TerminatableMiddleware` interface like Laravel, you can achieve similar results by using WordPress hooks such as `shutdown` or plugin-specific action hooks fired after response delivery.

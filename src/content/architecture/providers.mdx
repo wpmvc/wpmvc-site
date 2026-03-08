@@ -1,0 +1,233 @@
+---
+title: Service Providers
+description: Service Providers are the central place to configure and bootstrap all WpMVC applications.
+---
+
+# Service Providers
+
+<a name="introduction"></a>
+## Introduction
+
+Service providers are the central place of all WpMVC application bootstrapping. Your own application, as well as all of WpMVC's core services, are bootstrapped via service providers.
+
+But, what do we mean by "bootstrapped"? In general, we mean registering things, including registering service container bindings and WordPress hooks. Service providers are the central place to configure your application.
+
+WpMVC uses several service providers internally to bootstrap its core services. Many of these providers are essential for the framework's operation.
+
+All user-defined service providers are registered in the `config/app.php` file. In the following documentation, you will learn how to write your own service providers and register them with your WpMVC application.
+
+---
+
+---
+
+<a name="writing-service-providers"></a>
+## Writing Service Providers
+
+All service providers extend the `MyPluginNamespace\WpMVC\Contracts\Provider` class. Most service providers contain a `register` and a `boot` method. Within the `register` method, you should only bind things into the [service container](/architecture/container). You should never attempt to register any event listeners, routes, or any other piece of functionality within the `register` method.
+
+The Artisan CLI can generate a new provider via the `make:provider` command:
+
+```bash
+php artisan make:provider RiakServiceProvider
+```
+
+---
+
+<a name="the-register-method"></a>
+### The Register Method
+
+As mentioned previously, within the `register` method, you should only bind things into the [service container](/architecture/container). You should never attempt to register any WordPress hooks, routes, or any other piece of functionality within the `register` method. Otherwise, you may accidentally use a service that is provided by a service provider which has not loaded yet.
+
+Let's take a look at a basic service provider. Within any of your service provider methods, you always have access to the `$this->app` property which provides access to the service container:
+
+```php copy
+<?php
+
+namespace MyPluginNamespace\App\Providers;
+
+defined( "ABSPATH" ) || exit;
+
+use MyPluginNamespace\WpMVC\Contracts\Provider;
+use MyPluginNamespace\Services\Riak\Connection;
+use MyPluginNamespace\WpMVC\App;
+
+class RiakServiceProvider extends Provider
+{
+    /**
+     * Register any application services.
+     *
+     * @return void
+     */
+    public function register() {
+        $this->app->singleton( Connection::class, function ( $app ) {
+            return new Connection( App::get_config()->get( 'riak' ) );
+        } );
+    }
+}
+```
+
+This service provider only defines a `register` method, and uses that method to define an implementation of `MyPluginNamespace\Services\Riak\Connection` in the service container. If you're not yet familiar with WpMVC's service container, check out [its documentation](/architecture/container).
+
+<a name="the-boot-method"></a>
+### The Boot Method
+
+So, what if we need to register a WordPress action or filter within our service provider? This should be done within the `boot` method. This method is called after all other service providers have been registered, meaning you have access to all other services that have been registered by the framework:
+
+```php copy
+<?php
+
+namespace MyPluginNamespace\App\Providers;
+
+defined( "ABSPATH" ) || exit;
+
+use MyPluginNamespace\WpMVC\Contracts\Provider;
+
+class HookServiceProvider extends Provider
+{
+    /**
+     * Bootstrap any application services.
+     *
+     * @return void
+     */
+    public function boot() {
+        add_action( 'wp_head', [ $this, 'add_analytics_script' ] );
+        
+        add_filter( 'the_content', function ( $content ) {
+            return $content . '<p>Powered by WpMVC</p>';
+        } );
+    }
+
+    /**
+     * Add analytics script to the head.
+     *
+     * @return void
+     */
+    public function add_analytics_script() {
+        echo '<!-- Analytics -->';
+    }
+}
+```
+
+#### WordPress Hooks and Shortcode Examples
+
+The `boot` method is also the perfect place to register your WordPress-specific logic such as custom post types, shortcodes, and AJAX handlers. This ensures that the underlying services they might depend on are already registered in the container.
+
+```php copy
+<?php
+
+namespace MyPluginNamespace\App\Providers;
+
+defined( "ABSPATH" ) || exit;
+
+use MyPluginNamespace\WpMVC\Contracts\Provider;
+
+class DiscoveryServiceProvider extends Provider
+{
+    /**
+     * Bootstrap any application services.
+     *
+     * @return void
+     */
+    public function boot() {
+        // Registering a Custom Post Type
+        add_action( 'init', [ $this, 'register_custom_post_types' ] );
+
+        // Registering a Shortcode
+        add_shortcode( 'my_plugin_data', [ $this, 'render_shortcode' ] );
+
+        // Registering an AJAX Handler
+        add_action( 'wp_ajax_my_action', [ $this, 'handle_ajax' ] );
+        add_action( 'wp_ajax_nopriv_my_action', [ $this, 'handle_ajax' ] );
+    }
+
+    /**
+     * Register custom post types.
+     * 
+     * @return void
+     */
+    public function register_custom_post_types() {
+        register_post_type( 'book', [
+            'public' => true,
+            'label'  => 'Books',
+        ] );
+    }
+
+    /**
+     * Render the shortcode.
+     * 
+     * @param  array  $atts
+     * @return string
+     */
+    public function render_shortcode( $atts ) {
+        return '<div>Shortcode Content</div>';
+    }
+
+    /**
+     * Handle AJAX request.
+     * 
+     * @return void
+     */
+    public function handle_ajax() {
+        wp_send_json_success( [ 'message' => 'AJAX Success' ] );
+    }
+}
+```
+
+#### Boot Method Dependency Injection
+
+You may type-hint dependencies for your service provider's `boot` method. The [service container](/architecture/container) will automatically inject any dependencies you need:
+
+```php copy
+use MyPluginNamespace\Services\SettingsService;
+
+/**
+ * Bootstrap any application services.
+ *
+ * @param  SettingsService  $settings
+ * @return void
+ */
+public function boot( SettingsService $settings ) {
+    if ( $settings->is_enabled( 'analytics' ) ) {
+        add_action( 'wp_footer', [ $this, 'inject_footer_script' ] );
+    }
+}
+```
+
+---
+
+<a name="registering-providers"></a>
+## Registering Providers
+
+All service providers are registered in the `config/app.php` configuration file. This file contains a `providers` array where you can list the class names of your service providers. 
+
+In WpMVC, you can distinguish between global providers and providers that should only load in the WordPress Admin environment:
+
+```php copy
+<?php
+
+defined( "ABSPATH" ) || exit;
+
+use MyPluginNamespace\App\Providers\RiakServiceProvider;
+use MyPluginNamespace\App\Providers\HookServiceProvider;
+use MyPluginNamespace\App\Providers\Admin\MenuServiceProvider;
+
+return [
+    /**
+     * Core application and plugin-wide providers.
+     */
+    'providers' => [
+        RiakServiceProvider::class,
+        HookServiceProvider::class,
+    ],
+
+    /**
+     * Providers loaded only within the WordPress Admin environment.
+     */
+    'admin_providers' => [
+        MenuServiceProvider::class,
+    ],
+];
+```
+
+When you invoke the `make:provider` Artisan command, you should manually add the generated provider to this configuration file. WpMVC will automatically instantiate each provider and execute the `register` and `boot` methods in the order they are listed.
+

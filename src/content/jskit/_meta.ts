@@ -1,8 +1,8 @@
 export default {
-  colors: 'Colors',
-  'classic-editor': 'Classic Editor',
-  'admin-sidebar': 'Admin Sidebar',
-  data: 'Data',
   components: 'Components',
   fields: 'Fields',
+  data: 'Data',
+  'admin-sidebar': 'Admin Sidebar',
+  'classic-editor': 'Classic Editor',
+  colors: 'Colors',
 }

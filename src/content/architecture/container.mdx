@@ -1,0 +1,417 @@
+---
+title: Service Container
+description: Master class dependency management in WpMVC. Learn how the service container powers automated dependency injection for your WordPress plugins.
+---
+
+import { Callout } from 'nextra/components'
+
+# Service Container
+
+<a name="introduction"></a>
+## Introduction
+
+The WpMVC service container acts as the central engine for managing class dependencies and facilitating robust dependency injection throughout your plugin. In simple terms, dependency injection allows a class to receive its required dependencies from an external source (the container) through its constructor or setter methods, rather than instantiating them internally.
+
+Let's look at a simple example:
+
+```php
+<?php
+
+namespace MyPluginNamespace\App\Http\Controllers;
+
+defined( "ABSPATH" ) || exit;
+
+use MyPluginNamespace\Services\AppleMusic;
+use MyPluginNamespace\WpMVC\Routing\Response;
+
+class PodcastController extends Controller
+{
+    /**
+     * The AppleMusic service instance.
+     */
+    protected AppleMusic $apple;
+
+    /**
+     * Create a new controller instance.
+     *
+     * @param  AppleMusic  $apple
+     * @return void
+     */
+    public function __construct( AppleMusic $apple ) {
+        $this->apple = $apple;
+    }
+
+    /**
+     * Show information about the given podcast.
+     *
+     * @param  string  $id
+     * @return mixed
+     */
+    public function show( $id ) {
+        return Response::send(
+            [
+                'podcast' => $this->apple->find_podcast( $id )
+            ]
+        );
+    }
+}
+```
+
+In the example above, the `PodcastController` relies on the `AppleMusic` service to fetch data. By **injecting** this dependency, we decouple the controller from any specific implementation. This architectural pattern is extremely beneficial for testing, as it allows you to swap the real `AppleMusic` service with a mock or dummy implementation during unit tests.
+
+Mastering the service container is pivotal for building scalable WordPress plugins with WpMVC and understanding the framework's internal architecture.
+
+---
+
+### Auto-Resolution Logic
+
+WpMVC's container is designed for developer convenience. If a class has no dependencies or only relies on other concrete classes, the container can automatically instantiate it using reflection—no manual configuration required. For instance, consider this logic within a `routes/web.php` file:
+
+```php
+<?php
+
+namespace MyPluginNamespace;
+
+defined( "ABSPATH" ) || exit;
+
+class Service
+{
+    // ...
+}
+
+Route::get('/', function ( Service $service ) {
+    die( get_class( $service ) );
+});
+```
+
+In this scenario, requesting the root URL triggers the container to resolve the `Service` class and inject it into the route handler seamlessly. This "zero-config" approach allows you to leverage dependency injection immediately without managing complex configuration files.
+
+Most components you build in WpMVC—including controllers, listeners, and middleware—benefit from this automatic resolution. Once you experience the streamlined workflow of reflection-based injection, it becomes an indispensable part of your development process.
+
+<a name="when-to-use-the-container"></a>
+### Optimal Use Cases for the Container
+
+Since auto-resolution handles most scenarios, you'll often type-hint dependencies in your controllers and routes without even touching the container manually.
+
+However, manual container interaction is necessary in specific cases:
+
+1.  **Interface Binding**: When you want to type-hint an interface but need to tell the container which [concrete implementation to provide](#binding-interfaces-to-implementations).
+2.  **Plugin & Package Development**: When building reusable WpMVC packages, you'll need to register your package's services into the global container.
+
+<a name="binding"></a>
+### Service Registration Essentials
+
+Service providers are the dedicated hub for registering your container bindings. Within these providers, you use the `$this->app` property to interact with the container instance.
+
+#### Standard Bindings
+
+The `bind` method is the primary way to register a service. It accepts the class/interface name and a `Closure` that returns the desired instance:
+
+```php
+use MyPluginNamespace\Services\Transistor;
+use MyPluginNamespace\Services\PodcastParser;
+
+$this->app->bind( Transistor::class, function ( $app ) {
+    return new Transistor( $app->get( PodcastParser::class ) );
+} );
+```
+
+The resolver receives the container itself as an argument, allowing you to resolve nested dependencies while building the object.
+
+#### Defining Singletons
+
+If a service should only be instantiated once during the entire request lifecycle, use the `singleton` method. Subsequent resolutions will return the same object instance:
+
+```php
+use MyPluginNamespace\Services\Transistor;
+use MyPluginNamespace\Services\PodcastParser;
+
+$this->app->singleton( Transistor::class, function ( $app ) {
+    return new Transistor( $app->get( PodcastParser::class ) );
+} );
+```
+
+#### Specific Instance Binding
+
+If you already have a pre-instantiated object, you can store it in the container using `set`. Every future request for that class will return this exact instance:
+
+```php
+use MyPluginNamespace\Services\Transistor;
+use MyPluginNamespace\Services\PodcastParser;
+
+$service = new Transistor( new PodcastParser );
+
+$this->app->set( Transistor::class, $service );
+```
+
+<a name="binding-interfaces-to-implementations"></a>
+### Binding Interfaces to Implementations
+
+A very powerful feature of the service container is its ability to bind an interface to a given implementation. For example, let's assume we have an `EventPusher` interface and a `RedisEventPusher` implementation. Once we have coded our `RedisEventPusher` implementation of this interface, we can register it with the service container like so:
+
+```php
+use MyPluginNamespace\Contracts\EventPusher;
+use MyPluginNamespace\Services\RedisEventPusher;
+
+$this->app->bind( EventPusher::class, RedisEventPusher::class );
+```
+
+This statement tells the container that it should inject the `RedisEventPusher` when a class needs an implementation of `EventPusher`. Now we can type-hint the `EventPusher` interface in the constructor of a class that is resolved by the container:
+
+```php
+use MyPluginNamespace\Contracts\EventPusher;
+
+defined( "ABSPATH" ) || exit;
+
+class PodcastBanner
+{
+    /**
+     * The event pusher implementation.
+     */
+    protected EventPusher $pusher;
+
+    /**
+     * Create a new class instance.
+     *
+     * @param  EventPusher  $pusher
+     * @return void
+     */
+    public function __construct( EventPusher $pusher ) {
+        $this->pusher = $pusher;
+    }
+}
+```
+
+<a name="contextual-binding"></a>
+### Contextual Binding
+
+There are scenarios where two separate classes might require different implementations of the same interface. For instance, one controller might need a local filesystem while another requires cloud storage, even though both type-hint the same `Filesystem` contract. WpMVC offers a fluent API to define these specific requirements:
+
+```php
+use MyPluginNamespace\App\Http\Controllers\PhotoController;
+use MyPluginNamespace\App\Http\Controllers\VideoController;
+use MyPluginNamespace\Contracts\Filesystem;
+use MyPluginNamespace\Services\S3Filesystem;
+use MyPluginNamespace\Services\LocalFilesystem;
+
+$this->app->when( PhotoController::class )
+          ->needs( Filesystem::class )
+          ->give( LocalFilesystem::class );
+
+$this->app->when( VideoController::class )
+          ->needs( Filesystem::class )
+          ->give( S3Filesystem::class );
+```
+
+<a name="binding-primitives"></a>
+### Binding Primitives
+
+In addition to class dependencies, some services might require primitive values like configuration strings or integers. The container allows you to inject these values contextually based on the class being resolved:
+
+```php
+$this->app->when( MyPluginNamespace\App\Http\Controllers\UserController::class )
+          ->needs( '$variable_name' )
+          ->give( $value );
+```
+
+<a name="tagging"></a>
+### Categorizing Services with Tags
+
+Sometimes you need to resolve a group of related services—for instance, a list of different `Report` generators. You can group these using tags:
+
+```php
+$this->app->bind( MyPluginNamespace\Reports\CpuReport::class, function () {
+    // ...
+} );
+
+$this->app->bind( MyPluginNamespace\Reports\MemoryReport::class, function () {
+    // ...
+} );
+
+$this->app->tag( [
+    MyPluginNamespace\Reports\CpuReport::class, 
+    MyPluginNamespace\Reports\MemoryReport::class
+], 'reports' );
+```
+
+Once tagged, you can retrieve the entire collection using the `tagged` method:
+
+```php
+$this->app->bind( MyPluginNamespace\Reports\ReportAnalyzer::class, function ( $app ) {
+    return new MyPluginNamespace\Reports\ReportAnalyzer( $app->tagged( 'reports' ) );
+} );
+```
+
+<a name="resolving"></a>
+## Service Retrieval
+
+<a name="the-get-method"></a>
+### The get Method
+
+To pull a service out of the container, use the `get` method with the class or interface name:
+
+```php
+use MyPluginNamespace\Services\Transistor;
+
+$transistor = $this->app->get( Transistor::class );
+```
+
+If you need to access the container from an area where `$this->app` isn't available, you can utilize the `App` class directly:
+
+```php
+use MyPluginNamespace\Services\Transistor;
+use MyPluginNamespace\WpMVC\App;
+
+$transistor = App::get( Transistor::class );
+```
+
+<a name="the-make-method"></a>
+### The make Method
+
+While `get()` is ideal for retrieving shared instances, the `make` method will always create a **brand-new instance** of the requested class:
+
+```php
+use MyPluginNamespace\Services\Transistor;
+
+$transistor = $this->app->make( Transistor::class );
+```
+
+If some of your class's dependencies are not resolvable via the container, you may inject them by passing them as an associative array into the `make` method:
+
+```php
+$transistor = $this->app->make( Transistor::class, [ 'id' => 1 ] );
+```
+
+<a name="automatic-injection"></a>
+### Automated Dependency Injection
+
+The most common way to resolve objects is through constructor type-hinting. Since WpMVC handles the instantiation of controllers, listeners, and other core components, it can automatically fulfill their dependencies.
+
+For example, by type-hinting your services in a controller's constructor, the container will resolve and inject them for you:
+
+```php
+<?php
+
+namespace MyPluginNamespace\App\Http\Controllers;
+
+defined( "ABSPATH" ) || exit;
+
+use MyPluginNamespace\Services\AppleMusic;
+use MyPluginNamespace\WpMVC\Routing\Response;
+
+class PodcastController extends Controller
+{
+    /**
+     * The AppleMusic service instance.
+     */
+    protected AppleMusic $apple;
+
+    /**
+     * Create a new controller instance.
+     *
+     * @param  AppleMusic  $apple
+     * @return void
+     */
+    public function __construct( AppleMusic $apple ) {
+        $this->apple = $apple;
+    }
+
+    /**
+     * Show information about the given podcast.
+     *
+     * @param  string  $id
+     * @return mixed
+     */
+    public function show( $id ) {
+        return Response::send(
+            [
+                'podcast' => $this->apple->find_podcast( $id )
+            ]
+        );
+    }
+}
+```
+
+For example, the `AppleMusic` service might look like this:
+
+```php
+<?php
+
+namespace MyPluginNamespace\Services;
+
+defined( "ABSPATH" ) || exit;
+
+class AppleMusic
+{
+    /**
+     * Find a podcast by ID.
+     *
+     * @param  string  $id
+     * @return array
+     */
+    public function find_podcast( $id ) {
+        return [
+            'id' => $id,
+            'title' => 'Sample Podcast'
+        ];
+    }
+}
+```
+
+<a name="method-invocation-and-injection"></a>
+## Method Invocation and Injection
+
+Sometimes you may wish to invoke a method on an object instance while allowing the container to automatically inject that method's dependencies. For example, given the following class:
+
+```php
+namespace MyPluginNamespace;
+
+defined( "ABSPATH" ) || exit;
+
+use MyPluginNamespace\Services\AppleMusic;
+
+class PodcastStats
+{
+    public function generate( AppleMusic $apple ) {
+        return [
+            // ...
+        ];
+    }
+}
+```
+
+You may invoke the `generate` method via the container like so:
+
+```php
+use MyPluginNamespace\PodcastStats;
+use MyPluginNamespace\WpMVC\App;
+
+$stats = App::call( [ new PodcastStats, 'generate' ] );
+```
+
+The `call` method accepts any PHP callable. The container's `call` method may even be used to invoke a `Closure` while automatically injecting its dependencies:
+
+```php
+use MyPluginNamespace\Services\AppleMusic;
+use MyPluginNamespace\WpMVC\App;
+
+$result = App::call( function ( AppleMusic $apple ) {
+    // ...
+} );
+```
+
+<a name="psr-11"></a>
+## PSR-11 Standards
+
+WpMVC's service container adheres to the [PSR-11](https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-11-container.md) standard. This means you can type-hint the standard `ContainerInterface` and the framework will provide the corresponding WpMVC container instance automatically:
+
+```php
+use MyPluginNamespace\Services\Transistor;
+use Psr\Container\ContainerInterface;
+
+Route::get( '/', function ( ContainerInterface $container ) {
+    $service = $container->get( Transistor::class );
+
+    // ...
+} );
+```

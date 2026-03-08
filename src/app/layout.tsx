@@ -3,11 +3,17 @@ import React from 'react'
 import Script from 'next/script'
 import type { Metadata } from 'next'
 import { Footer, Layout, Navbar } from 'nextra-theme-docs'
-import { Head } from 'nextra/components'
+import { Banner, Head } from 'nextra/components'
 import { getPageMap } from 'nextra/page-map'
 import 'nextra-theme-docs/style.css'
 import './globals.css'
 import { FooterThemeSwitch } from '../components/FooterThemeSwitch'
+import { ShineBorder } from '../components/ui/shine-border'
+import { Geist } from "next/font/google";
+import { cn } from "@/lib/utils";
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+
 
 // Update this to your production URL
 const siteUrl = 'https://wpmvc.com'
@@ -15,26 +21,26 @@ const siteUrl = 'https://wpmvc.com'
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    template: '%s – WPMVC',
-    default: 'WPMVC – The Elegant MVC Framework for WordPress'
+    template: '%s – WpMVC',
+    default: 'WpMVC – The Elegant MVC Framework for WordPress'
   },
   description:
-    'WPMVC is an elegant MVC framework for WordPress — clean architecture, built-in routing, and a powerful CLI for plugin and theme development.',
-  applicationName: 'WPMVC',
+    'WpMVC is an elegant MVC framework for WordPress — clean architecture, built-in routing, and a powerful CLI for plugin and theme development.',
+  applicationName: 'WpMVC',
   generator: 'Next.js',
   keywords: ['WordPress', 'MVC', 'framework', 'plugin', 'theme', 'PHP'],
   authors: [{ name: 'WPMVC', url: siteUrl }],
-  creator: 'WPMVC',
-  publisher: 'WPMVC',
+  creator: 'WpMVC',
+  publisher: 'WpMVC',
   robots: {
     index: true,
     follow: true
   },
   openGraph: {
     type: 'website',
-    siteName: 'WPMVC',
+    siteName: 'WpMVC',
     url: siteUrl,
-    title: 'WPMVC – The Elegant MVC Framework for WordPress',
+    title: 'WpMVC – The Elegant MVC Framework for WordPress',
     description:
       'An elegant MVC framework for WordPress with clean architecture, built-in routing, and a powerful CLI.',
     images: [
@@ -64,7 +70,7 @@ export const metadata: Metadata = {
     apple: '/favicon.svg',
   },
   alternates: {
-    canonical: './',
+    canonical: siteUrl,
   },
   other: {
     'msapplication-TileImage': `${siteUrl}/ms-icon-144x144.png`,
@@ -86,9 +92,54 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   )
   const pageMap = await getPageMap()
   return (
-    <html lang="en" dir="ltr" suppressHydrationWarning>
-      <Head />
-      <body suppressHydrationWarning>
+    <html lang="en" dir="ltr" suppressHydrationWarning className={cn("font-sans", geist.variable)}>
+        <Head>
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                '@context': 'https://schema.org',
+                '@graph': [
+                  {
+                    '@type': 'Organization',
+                    '@id': `${siteUrl}/#organization`,
+                    name: 'WpMVC',
+                    url: siteUrl,
+                    logo: {
+                      '@type': 'ImageObject',
+                      url: `${siteUrl}/logo.svg`
+                    },
+                    sameAs: [
+                      'https://github.com/wpmvc',
+                      'https://x.com/wpmvcofficial',
+                      'https://linkedin.com/company/wpmvc',
+                      'https://facebook.com/wpmvc'
+                    ]
+                  },
+                  {
+                    '@type': 'WebSite',
+                    '@id': `${siteUrl}/#website`,
+                    url: siteUrl,
+                    name: 'WpMVC',
+                    publisher: { '@id': `${siteUrl}/#organization` },
+                    description: 'The Elegant MVC Framework for WordPress'
+                  },
+                  {
+                    '@type': 'SoftwareApplication',
+                    '@id': `${siteUrl}/#software`,
+                    name: 'WpMVC',
+                    url: siteUrl,
+                    applicationCategory: 'DeveloperApplication',
+                    operatingSystem: 'WordPress',
+                    description: 'An elegant MVC framework for WordPress with clean architecture, built-in routing, and a powerful CLI.',
+                    author: { '@id': `${siteUrl}/#organization` }
+                  }
+                ]
+              })
+            }}
+          />
+        </Head>
+        <body suppressHydrationWarning>
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-ZFX5VRQCY7"
           strategy="afterInteractive"
@@ -103,6 +154,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         </Script>
         <Layout
           navbar={navbar}
+          banner={
+            <Banner storageKey="release-2.0">
+              <a href="/docs/installation" style={{ textDecoration: 'none', color: 'inherit' }}>
+                🎉 WpMVC 2.0 is released! Now compatible with PHP 7.4 to 8.5. Read the guide →
+              </a>
+            </Banner>
+          }
           footer={
             <Footer>
               <div style={{ display: 'flex', flexDirection: 'column', width: '100%', gap: '24px' }}>
@@ -112,7 +170,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                     <img src="/logo.svg" alt="WPMVC Logo" className="dark:hidden" style={{ height: '24px', width: 'auto', filter: 'grayscale(1) opacity(0.7)' }} />
                     <img src="/logo-white.svg" alt="WPMVC Logo" className="hidden dark:block" style={{ height: '24px', width: 'auto', filter: 'grayscale(1) opacity(0.7)' }} />
                     <span style={{ fontSize: '14px', color: '#666', fontWeight: 500 }}>
-                      Built for modern WordPress development.
+                      The Elegant MVC Framework for WordPress
                     </span>
                   </div>
                   <div style={{ display: 'flex', gap: '16px' }}>
@@ -152,6 +210,33 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           docsRepositoryBase="https://github.com/wpmvc/wpmvc-site/blob/master"
           sidebar={{ defaultMenuCollapseLevel: 1 }}
           pageMap={pageMap}
+          toc={{
+            extraContent: (
+              <div className="relative group mt-4 overflow-hidden rounded-xl border border-gray-200/50 dark:border-neutral-800/50 bg-white/50 dark:bg-neutral-900/50 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/5 hover:-translate-y-0.5 hover:border-gray-300 dark:hover:border-neutral-700">
+                <ShineBorder 
+                  className="absolute inset-0 z-0 opacity-40 group-hover:opacity-100 transition-opacity duration-500" 
+                  shineColor={["#A07CFE", "#FE8FB5", "#FFBE7B"]} 
+                  borderWidth={1.5}
+                />
+                <a
+                  href="https://github.com/wpmvc/wpmvc"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="relative z-10 flex flex-col gap-2.5 p-4 text-sm font-medium transition-colors text-gray-500 dark:text-neutral-400 hover:text-gray-900 dark:hover:text-white no-underline"
+                >
+                  <div className="flex items-center gap-2">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-yellow-500 fill-yellow-500/10 transition-all duration-300 group-hover:scale-125 group-hover:fill-yellow-500/30">
+                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                    </svg>
+                    <span className="font-bold text-gray-900 dark:text-white tracking-tight">Star WPMVC on GitHub</span>
+                  </div>
+                  <p className="text-xs leading-relaxed opacity-70 group-hover:opacity-100 transition-opacity">
+                    Love WPMVC? Star us on GitHub to support the project and help us reach the next milestone!
+                  </p>
+                </a>
+              </div>
+            )
+          }}
         >
           {children}
         </Layout>

@@ -6,7 +6,15 @@ const withNextra = nextra({
   search: {
     codeblocks: false
   },
-  contentDirBasePath: '/docs'
+  contentDirBasePath: '/docs',
+  mdxOptions: {
+    rehypePrettyCodeOptions: {
+      theme: {
+        dark: 'material-theme-palenight', // Specify the dark theme here
+        light: 'material-theme-palenight' // Specify the light theme here
+      }
+    }
+  }
 })
 
 const nextConfig: NextConfig = {

@@ -12,7 +12,7 @@ description: ClassicEditor is a React component that seamlessly integrates the W
 
 To install the `@wpmvc/classic-editor` package, run:
 
-```sh npm2yarn
+```sh npm2yarn copy
 npm install @wpmvc/classic-editor
 ```
 
@@ -20,7 +20,7 @@ npm install @wpmvc/classic-editor
 
 You can use the `ClassicEditor` component in your React application as follows:
 
-```tsx
+```tsx copy filename="src/admin/components/MyCustomEditor.tsx"
 import { useState } from '@wordpress/element';
 import ClassicEditor from '@wpmvc/classic-editor';
 
@@ -29,7 +29,7 @@ const MyComponent = () => {
 
   return (
     <div>
-      <h2>My Custom Editor</h2>
+      <h2> My Custom Editor</h2>
       <ClassicEditor
         value={content}
         onChange={(newContent) => setContent(newContent)}
@@ -56,11 +56,13 @@ The `ClassicEditor` component accepts the following props:
 | `useExtendStyles` | `boolean` | If `true`, applies extended styles to the editor. Defaults to `false`. |
 | `hasMedia` | `boolean` | If `true`, includes media buttons in the editor. Defaults to `true`. |
 
+---
+
 ## PHP Integration
 
 To use the WordPress Classic Editor in your custom theme or plugin, add the following PHP code to your `functions.php` file or the main plugin file:
 
-```php
+```php copy filename="functions.php"
 <?php
 /**
  * Enqueue WordPress Classic Editor and Media for custom usage.
@@ -86,6 +88,8 @@ function enqueue_wp_classic_editor_and_media() {
 // Hook the function to an appropriate action
 add_action( 'admin_enqueue_scripts', 'enqueue_wp_classic_editor_and_media' );
 ```
+
+---
 
 ## Features
 

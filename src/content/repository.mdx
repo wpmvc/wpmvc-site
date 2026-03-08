@@ -1,0 +1,181 @@
+---
+title: Repositories
+description: Use the Repository pattern and WpMVC's Base Repository to decouple your data access logic from your business logic.
+---
+
+import { Callout } from 'nextra/components'
+
+# Repositories
+
+The Repository pattern serves as an abstraction layer between your application's business logic and the data persistence layer. In a WordPress environment, repositories help you decouple your business logic from raw `wpdb` calls or Eloquent queries, making your plugin's codebase cleaner and more maintainable.
+
+WpMVC provides a powerful **Base Repository** that standardizes common database operations, ensuring your data access logic is consistent and reusable.
+
+---
+
+## Why Use Repositories?
+
+- **Decoupling**: Controllers remain agnostic of how data is fetched or persisted.
+- **Consistency**: Standardized methods for CRUD operations across your entire plugin.
+- **Automatic Processing**: Built-in handling for complex data types like arrays and objects (JSON encoding).
+- **Testability**: Simplifies mocking data layers during unit testing.
+
+---
+
+## The Base Repository
+
+WpMVC includes an abstract `WpMVC\Repositories\Repository` class that provides a suite of helper methods. When you extend this class, you only need to implement the `get_query_builder()` method.
+
+### Base Repository Methods
+
+By extending the base repository, your class automatically gains the following methods:
+
+| Method | Description |
+| :--- | :--- |
+| `create( DTO $dto )` | Inserts a new record and returns the ID. |
+| `update( DTO $dto )` | Updates a record by its ID (retrieved from the DTO). |
+| `get_by( $column, $value )` | Retrieves the first record matching a criteria. |
+| `get_by_id( $id )` | Retrieves a single record by its primary key. |
+| `get_by_ids( array $ids )` | Retrieves multiple records by their IDs. |
+| `delete_by( $col, $val )` | Deletes records matching a criteria. |
+| `delete_by_id( $id )` | Deletes a record by its ID. |
+
+---
+
+## Implementing a Repository
+
+To create a repository, extend the base `Repository` class and define your query builder. Usually, this builder comes from an Eloquent model or a specific table.
+
+#### Generating Repositories
+
+Use the `make:repository` Artisan command to generate a new repository class:
+
+```bash
+php artisan make:repository PostRepository
+```
+
+The new class will be placed in your `app/Repositories` directory:
+
+```php copy
+<?php
+
+namespace MyPluginNamespace\App\Repositories;
+
+defined( 'ABSPATH' ) || exit;
+
+use MyPluginNamespace\WpMVC\Repositories\Repository;
+use MyPluginNamespace\WpMVC\Database\Query\Builder;
+use MyPluginNamespace\App\Models\Post;
+
+class PostRepository extends Repository
+{
+    /**
+     * Define the query builder instance for this repository.
+     */
+    public function get_query_builder(): Builder
+    {
+        return Post::query();
+    }
+
+    /**
+     * Custom method: Get all published posts.
+     */
+    public function get_published()
+    {
+        return $this->get_query_builder()
+            ->where( 'post_status', 'publish' )
+            ->get();
+    }
+}
+```
+
+<Callout type="info">
+  **Automatic JSON Encoding**: The base repository's `process_values` method automatically detects arrays or objects in your data and encodes them using `wp_json_encode` before saving to the database.
+</Callout>
+
+---
+
+## Integration with DTOs
+
+WpMVC repositories are designed to work with **Data Transfer Objects (DTOs)**. This ensures that the data passed to your repository is structured and validated.
+
+```php copy
+<?php
+
+namespace MyPluginNamespace\App\Http\Controllers;
+
+defined( 'ABSPATH' ) || exit;
+
+use MyPluginNamespace\App\DTO\PostDTO;
+use MyPluginNamespace\WpMVC\Routing\Response;
+
+class PostController extends Controller
+{
+    public function store( PostDTO $dto )
+    {
+        // The create method accepts a DTO and handles the insertion logic
+        $id = $this->posts->create( $dto );
+        
+        return Response::send( [ 'id' => $id ], 201 );
+    }
+}
+```
+
+---
+
+## Repository Injection
+
+You can inject your repositories directly into controllers using WpMVC's Dependency Injection.
+
+```php copy
+<?php
+
+namespace MyPluginNamespace\App\Http\Controllers;
+
+defined( 'ABSPATH' ) || exit;
+
+use MyPluginNamespace\App\Repositories\PostRepository;
+use MyPluginNamespace\WpMVC\Routing\Response;
+
+class PostController extends Controller
+{
+    protected $posts;
+
+    public function __construct( PostRepository $posts )
+    {
+        $this->posts = $posts;
+    }
+
+    public function index()
+    {
+        return Response::send( $this->posts->get_by_id( 1 ) );
+    }
+}
+```
+
+---
+
+For maximum flexibility, you can bind an interface to your repository implementation in a Service Provider.
+
+```php copy
+<?php
+
+namespace MyPluginNamespace\App\Providers;
+
+defined( 'ABSPATH' ) || exit;
+
+use MyPluginNamespace\WpMVC\Foundation\Support\Providers\ServiceProvider;
+use MyPluginNamespace\App\Contracts\PostRepositoryInterface;
+use MyPluginNamespace\App\Repositories\PostRepository;
+
+class RepositoryServiceProvider extends ServiceProvider
+{
+    public function register()
+    {
+        $this->app->bind(
+            PostRepositoryInterface::class,
+            PostRepository::class
+        );
+    }
+}
+```

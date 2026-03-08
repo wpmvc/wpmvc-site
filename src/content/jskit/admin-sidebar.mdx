@@ -10,20 +10,22 @@ Professional React hooks for WordPress admin interfaces with complete sidebar ma
 
 ## Features
 
-- **✨ Dual Hook System**
+- **Dual Hook System**
     - `useActiveAdminMenu` - Intelligent menu highlighting
     - `useAdminSidebarLayout` - Real-time sidebar state tracking
-- **🚀 Seamless Integration**
+- **Seamless Integration**
     - `HashRouter` support
     - Automatic responsive layout adjustments
-- **⚡ Performance Optimized**
+- **Performance Optimized**
     - Lightweight (under 2KB gzipped)
     - Zero unnecessary re-renders
     - Efficient DOM operations
 
+---
+
 ## Installation
 
-```sh npm2yarn
+```sh npm2yarn copy
 npm install @wpmvc/admin-sidebar react-router-dom
 ```
 
@@ -31,7 +33,7 @@ npm install @wpmvc/admin-sidebar react-router-dom
 
 ### With React Router
 
-```tsx
+```tsx copy filename="src/admin/App.tsx"
 import { HashRouter, useLocation, useNavigate, Outlet, Route, Routes } from 'react-router-dom';
 import { useActiveAdminMenu, useAdminSidebarLayout } from '@wpmvc/admin-sidebar';
 
@@ -74,7 +76,9 @@ export default () => (
 );
 ```
 
-## 📚 API Reference
+---
+
+## API Reference
 
 ### `useActiveAdminMenu(config: ActiveMenuConfig)`
 

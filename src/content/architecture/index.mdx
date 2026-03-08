@@ -1,0 +1,71 @@
+---
+title: Architecture Concepts
+description: A deep dive into the engineering principles, request lifecycle, and modular orchestration of the WpMVC framework.
+---
+
+import { FileTree } from 'nextra/components'
+
+# Architecture Concepts
+
+WpMVC is a robust, service-oriented framework architected to bring modern software engineering patterns to the WordPress ecosystem. Heavily inspired by industry-leading frameworks like Laravel, WpMVC implements a decoupled Model-View-Controller (MVC) architecture that emphasizes scalability, maintainability, and developer velocity.
+
+---
+
+## Core Engineering Pillars
+
+### Inversion of Control (IoC)
+The framework's foundation is a centralized **Service Container**. It manages the instantiation and life cycle of all core services through dependency injection and auto-wiring.
+
+### Service Orchestration
+Initialization is managed through **Service Providers**. These classes encapsulate the logic for bootstrapping various domains of the application, keeping the entry point clean and modular.
+
+### Dependency Isolation (PHPScoper)
+WpMVC utilizes `humbug/php-scoper` to ensure your plugin is entirely conflict-free. All Composer dependencies are uniquely prefixed per-plugin, preventing "Dependency Hell" when other plugins load different versions of the same library.
+
+---
+
+## Project Structure
+
+Our file system adheres to PSR-4 standards, ensuring predictable class loading and a logical separation of concerns.
+
+<FileTree>
+  <FileTree.Folder name="app" defaultOpen>
+    <FileTree.Folder name="Http">
+      <FileTree.Folder name="Controllers" />
+      <FileTree.Folder name="Middleware" />
+      <FileTree.Folder name="Requests" />
+    </FileTree.Folder>
+    <FileTree.Folder name="Models" />
+    <FileTree.Folder name="Providers" />
+  </FileTree.Folder>
+  <FileTree.Folder name="config">
+    <FileTree.File name="app.php" />
+  </FileTree.Folder>
+  <FileTree.Folder name="dev-tools">
+    <FileTree.Folder name="scoper" />
+  </FileTree.Folder>
+  <FileTree.Folder name="database">
+    <FileTree.Folder name="Factories" />
+    <FileTree.Folder name="Migrations" />
+    <FileTree.Folder name="Seeders" />
+    <FileTree.File name="Setup.php" />
+  </FileTree.Folder>
+  <FileTree.Folder name="resources">
+    <FileTree.Folder name="js" />
+    <FileTree.Folder name="sass" />
+    <FileTree.Folder name="views" />
+  </FileTree.Folder>
+  <FileTree.Folder name="routes">
+    <FileTree.Folder name="ajax">
+      <FileTree.File name="api.php" />
+    </FileTree.Folder>
+    <FileTree.Folder name="rest">
+      <FileTree.File name="api.php" />
+    </FileTree.Folder>
+  </FileTree.Folder>
+  <FileTree.Folder name="vendor" />
+  <FileTree.File name="artisan" />
+  <FileTree.File name="composer.json" />
+  <FileTree.File name="plugin.php" />
+  <FileTree.File name="webpack.config.js" />
+</FileTree>

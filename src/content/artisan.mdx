@@ -1,0 +1,136 @@
+---
+title: Artisan CLI
+description: Standardized command-line automation for scaffolding, service orchestration, and rapid application development within the WpMVC ecosystem.
+---
+
+# Artisan CLI
+
+The **Artisan CLI** is an integrated command-line interface for the WpMVC framework, engineered to automate repetitive development tasks. Built on the industry-standard `symfony/console` component and inspired by Laravel's Artisan, it provides a high-reliability environment for scaffolding core components, managing application state, and streamlining the WordPress plugin development lifecycle.
+
+---
+
+## Technical Integration
+
+### Installation
+
+The CLI package is typically included as a core dependency within the WpMVC framework. For custom integrations or standalone utility usage, it can be integrated via Composer:
+
+```bash copy
+composer require wpmvc/artisan
+```
+
+### Execution Environment
+
+Artisan is executed through the `artisan` binary located in the application's root directory. 
+
+```bash copy
+php artisan [command] [options] [arguments]
+```
+
+---
+
+## System Orchestration Commands
+
+### Application Initialization
+
+#### `app:setup`
+The primary command for initializing a new WpMVC ecosystem. It orchestrates the renaming of entry files, updates global namespaces, configures text domains, and synchronizes Composer dependencies.
+
+```bash copy
+php artisan app:setup
+```
+
+
+## Scaffolding & Code Generation
+
+Artisan provides a suite of `make` commands to generate standardized boilerplate code, ensuring architectural consistency across the application.
+
+### Component Generators
+
+| Command | Destination | Description |
+| :--- | :--- | :--- |
+| `make:controller` | `app/Http/Controllers` | Generates a REST API controller with optional method scaffolding. |
+| `make:model` | `app/Models` | Creates an Eloquent-ready model for database interaction. |
+| `make:middleware` | `app/Http/Middleware` | Scaffolds a request interceptor for pipeline management. |
+| `make:repository` | `app/Repositories` | Generates a data access layer for domain logic isolation. |
+| `make:dto` | `app/DTOs` | Creates a strict-typed Data Transfer Object for payload integrity. |
+| `make:mail` | `app/Mail` | Scaffolds a mailable class and its corresponding view template. |
+| `make:request` | `app/Http/Requests` | Generates a custom form request class for advanced validation logic. |
+| `make:factory` | `database/factories` | creates a database factory for generating model test data. |
+| `make:seeder` | `database/seeders` | Scaffolds a database seeder for table population. |
+| `make:provider` | `app/Providers` | Scaffolds a Service Provider for dependency injection and service registration. |
+
+### Technical Reference
+
+#### `make:controller`
+Instantiates a new controller class. This command minimizes manual boilerplate by establishing correct namespace and class inheritance.
+```bash copy
+php artisan make:controller UserController
+```
+
+#### `make:model`
+Generates a new database model class.
+```bash copy
+php artisan make:model Post
+```
+
+#### `make:repository`
+Standardizes data access logic by generating a new repository class. Use this to maintain a clean separation between database queries and business logic.
+```bash copy
+php artisan make:repository UserRepository
+```
+
+#### `make:provider`
+Generates a Service Provider class to manage service discovery and dependency container bindings.
+```bash copy
+php artisan make:provider PostTypeServiceProvider
+```
+
+#### `make:middleware`
+Scaffolds a new request middleware to intercept or modify incoming HTTP requests within the application pipeline.
+```bash copy
+php artisan make:middleware EnsureIsAdmin
+```
+
+#### `make:mail`
+Generates a mailable class for structured email composition, including its associated view template.
+```bash copy
+php artisan make:mail WelcomeEmail
+```
+
+#### `make:request`
+Creates a dedicated Form Request class, enabling complex validation rules and authorization logic to be decoupled from controllers.
+```bash copy
+php artisan make:request StoreUserRequest
+```
+
+#### `make:factory`
+Instantiates a new database factory class, facilitating the generation of consistent dummy data for testing and development.
+```bash copy
+php artisan make:factory UserFactory
+```
+
+#### `make:seeder`
+Generates a database seeder class used to programmatically populate database tables with initial or sample data.
+```bash copy
+php artisan make:seeder UserSeeder
+```
+
+#### `make:dto`
+Generates a strict-typed Data Transfer Object (DTO) to ensure data integrity and structural consistency when passing data between application layers.
+```bash copy
+php artisan make:dto UserDTO
+```
+
+---
+
+## Database Management
+
+Artisan provides commands for managing database state, seeding, and migrations within the WpMVC ecosystem.
+
+### `db:seed`
+Executes database seeders to populate tables. By default, it runs the main `DatabaseSeeder` class.
+```bash copy
+php artisan db:seed
+```
+*Use the `--class` option to target a specific seeder.*

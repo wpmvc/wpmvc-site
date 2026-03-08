@@ -3,82 +3,85 @@ title: Installation
 description: Welcome to WpMVC — a modern WordPress plugin framework that brings simplicity, structure, and speed to plugin development.
 ---
 
-import { Steps } from 'nextra/components'
+import { Steps, Callout } from 'nextra/components'
 
 # Installation
 
-Welcome to **WpMVC** — a modern WordPress plugin framework that brings simplicity, structure, and speed to plugin development. With expressive syntax and a rich set of tools, WpMVC helps developers build high-quality plugins effortlessly.
+WpMVC is a modern WordPress plugin framework engineered for architectural precision and developer efficiency. By integrating professional PHP patterns and a comprehensive CLI, WpMVC enables the rapid development of high-performance, maintainable plugins.
+
+To get started with WpMVC, ensure you have **Composer** and **PHP 7.4** installed on your system.
+
+<Callout type="warning">
+  To ensure seamless compatibility across PHP 7.4 to 8.5, it is recommended to maintain **PHP 7.4** as your system's primary version during the installation and build process. Initializing dependencies on higher PHP versions can introduce compatibility regression in environments running PHP 7.4.
+</Callout>
 
 <Steps>
 
-### Create a New Plugin
+### Architect Your Plugin
 
-Start by scaffolding your plugin using Composer:
+Scaffold a new plugin project using Composer:
 
-```sh
+```sh copy
 composer create-project wpmvc/wpmvc plugin-name
 ```
 
-Replace `plugin-name` with your desired plugin folder name.
+*Replace `plugin-name` with your desired directory name.*
 
-### Navigate to Your Plugin Directory
+### Initialize the Environment
 
-```sh
+Navigate to your project directory and execute the interactive setup utility:
+
+```sh copy
 cd plugin-name
-```
-
-### Run the Setup Wizard
-
-Configure your plugin details interactively:
-
-```sh
 php artisan app:setup
 ```
 
 #### Setup Prompts Explained
 
-When prompted:
+The setup utility handles the primary configuration of your application:
 
-* **Enter Plugin:**
-  This is the display name of your plugin.
-  *Example:* `Plugin Name`
-
-* **Enter plugin namespace:**
-  This is the PHP namespace used throughout your codebase.
-  *Example:* `PluginName`
-
-* **Enter plugin API namespace:**
-  This is the namespace for your REST API endpoints.
-  *Example:* `plugin-name`
+- **Plugin Name**: The formal display name of your plugin (e.g., `OptinCraft Pro`).
+- **Plugin Namespace**: The root PHP namespace for your codebase (e.g., `OptinCraftPro`).
+- **API Namespace**: The unique URL prefix for your REST API endpoints (e.g., `optincraft-pro`).
 
 </Steps>
 
+<Callout type="success">
+  **Initialization Successful.** Your plugin is now scaffolded and ready for development.
+</Callout>
+
 ---
 
-✅ That’s it — your plugin is now scaffolded and ready to build!
+## Next Steps
 
-## Artisan Command
+Now that your plugin is ready, explore the core components of the framework:
 
-Run this command to see all available command lists:
+### Artisan CLI
 
-```sh
+Artisan is the primary interface for managing your WpMVC application. Execute it to list all available commands:
+
+```sh copy
 php artisan
 ```
 
-## Routing
+### Routing & Controllers
+Define your API endpoints and organize your logic:
+- Check out the [Routing Documentation](./routing)
+- Learn about [Controllers](./controllers)
 
-Check out the [Routing Documentation](https://github.com/wpmvc/routing) for more details.
+### Database & ORM
+Manage your data with a fluent query builder and Eloquent models:
+- Explore [Database & Eloquent](./database)
+- Learn about [Repositories](./repository)
 
-## Database
+---
 
-Check out the [Database Documentation](https://github.com/wpmvc/database) for more details.
+## Maintenance
 
-## Regenerate Vendor Directory
+### Regenerating Dependencies
 
-To re-generate the vendor folder, do **not** use `composer install` or `php artisan app:setup`. 
+WpMVC uses a custom build process to handle namespace isolation. To re-generate your `vendor` folder or update dependencies, do **not** use `composer install`. Instead, use:
 
-Instead, use:
-
-```sh
+```sh copy
 composer setup
 ```

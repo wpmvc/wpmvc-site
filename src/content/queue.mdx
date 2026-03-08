@@ -1,0 +1,133 @@
+---
+title: Sequential Queue Engine
+description: Documenting the design and implementation of WpMVC's high-performance, sequence-aware background processing engine.
+---
+
+import { Callout } from 'nextra/components'
+
+# Sequential Queue Engine
+
+The **WpMVC Queue** is an enterprise-grade, sequence-aware background processing engine designed for complex, high-reliability workflows. While built on the industry-standard [deliciousbrains/wp-background-processing](https://github.com/deliciousbrains/wp-background-processing) library, WpMVC significantly extends `WP_Background_Process` to introduce **stateful task orchestration**. This architecture allows for the execution of long-running processes that safely navigate PHP environment constraints and server execution limits.
+
+---
+
+## Technical Integration
+
+### Installation
+
+Integrate the engine into your project via Composer:
+
+```bash copy
+composer require wpmvc/queue
+```
+
+### Implementation Pattern
+
+To implement a sequence, extend the `WpMVC\Queue\Sequence` class. Developers must implement two core methods: `perform_sequence_task` (the logic execution) and `get_item` (the unit of work iterator).
+
+The following example demonstrates a throttled execution pattern, designed to respect external API rate limits during record processing.
+
+```php copy filename="app/Queues/NewsletterSequence.php"
+namespace MyPlugin\App\Queues;
+
+use WpMVC\Queue\Sequence;
+
+class NewsletterSequence extends Sequence {
+    /**
+     * Unique identifier for the background process.
+     */
+    protected $action = 'send_newsletters';
+
+    /**
+     * Throughput Control: Defines the minimum duration (seconds) between tasks.
+     * This mechanism ensures compliance with rate limits even across multiple requests.
+     */
+    protected function each_item_minimum_time(): int {
+        return 30;
+    }
+
+    /**
+     * Core Execution Logic: Processes an individual item within the sequence.
+     */
+    protected function perform_sequence_task( $item ) {
+        return Mailer::send($item['email'], 'Welcome aboard!');
+    }
+
+    /**
+     * Iterator Logic: Retrieves the next item in the processing sequence.
+     */
+    protected function get_item( $item ) {
+        return Subscriber::next_after($item['id']);
+    }
+}
+```
+
+<Callout type="warning">
+  **Managing Execution Limits**: When a throttle duration (e.g., 30s) exceeds the server's PHP execution limit (e.g., 20s), the engine automatically persists the task state. It then gracefully terminates the current request and initializes a subsequent background process to resume execution. This ensures continuous operation without timing out.
+</Callout>
+
+## Design Principles
+
+### Request Chaining and Continuity
+
+The engine architecture is optimized for processing massive datasets by partitioning work across successive asynchronous HTTP requests. 
+
+*   **Execution Monitoring**: The system continuously monitors the remaining PHP execution time.
+*   **State Persistence**: When a process approaches the predefined safety threshold (default 20s), the engine serializes the current state and spawns a new process to ensure uninterrupted workflow continuity.
+
+### Resource Utilization and Guarding
+
+To maintain system stability and prevent CPU saturation, the engine provides granular controls over processing velocity:
+
+*   **`each_item_minimum_time()`**: Enforces a minimum duration per task block.
+*   **`sleep_on_rest_time()`**: When enabled, the engine will utilize `sleep()` to bridge the gap between a task's completion and its minimum required duration. For example, if `each_item_minimum_time` is set to **10 seconds** and the task completes in **2 seconds**, the engine will sleep for the remaining **8 seconds** within the current request to maintain precise throughput.
+*   **Request Continuity**: If the remaining request time is insufficient to accommodate the sleep or the next task, the engine proactively serializes the state and initializes a new process.
+
+---
+
+---
+
+## Enterprise Use Cases
+
+| Workflow Category | Implementation Strategy |
+| :--- | :--- |
+| **Large-Scale Migration** | Porting over 100,000 records without degrading production performance. |
+| **High-Volume Communications** | Managing batch email delivery while strictly adhering to SES or SendGrid rate limits. |
+| **Infrastructure Syncing** | Implementing bi-directional data synchronization with external ERPs such as Salesforce or SAP. |
+| **Media Processing** | Orchestrating sequential transformations for high-resolution assets or document generation. |
+
+---
+
+## API Reference and Configuration
+
+### Primary Configuration Methods
+
+| Method | Return Type | Definition |
+| :--- | :--- | :--- |
+| `each_item_minimum_time()` | `int` | Minimum duration for an execution block (Default: 7s). |
+| `sleep_on_rest_time()` | `bool` | Enables the engine to sleep during the current request to satisfy `each_item_minimum_time` (Default: false). |
+| `get_default_time_limit()` | `int` | The execution window allocated for a single request (Default: 20s). |
+
+### Error Handling and Observability
+
+Reliability is managed through the `triggered_error` method. This serves as a critical telemetry point, capturing fatal errors originating from the core logic or external dependencies. 
+
+```php copy filename="app/Queues/NewsletterSequence.php"
+protected function triggered_error( ?array $error ) {
+    // Audit Logging: Record failure state for administrative review.
+    QueueLog::create([
+        'item_id' => $this->sequence_item['id'],
+        'reason'  => $error['message'] ?? 'Unknown Error',
+        'status'  => 'failed'
+    ]);
+
+    // External Telemetry: Forward critical failures to monitoring services.
+    Log::critical('Newsletter Sequence Failure detected', [
+        'error' => $error,
+        'item'  => $this->sequence_item
+    ]);
+
+    // Alerting: Dispatch notifications to relevant system stakeholders.
+    Notification::email_admin('Operational Alert: Queue Failure', "Item #{$this->sequence_item['id']} failed.");
+}
+```

@@ -12,9 +12,11 @@ JSKit Fields is a flexible, extensible React field/component library for buildin
 
 Install via your preferred package manager:
 
-```sh npm2yarn
+```sh npm2yarn copy
 npm install @wpmvc/fields
 ```
+
+---
 
 ## Features
 
@@ -24,6 +26,8 @@ npm install @wpmvc/fields
 - **Conditional logic**: Show/hide fields based on attribute values.
 - **TypeScript support**: Strongly typed for safety and autocompletion.
 
+---
+
 ## Usage Example
 
 You can use JSKit Fields by passing a fields config and state handlers to the `<Fields />` component.
@@ -31,7 +35,7 @@ You can use JSKit Fields by passing a fields config and state handlers to the `<
 > [!TIP]
 > Recommended: Use the `useAttributes` hook to manage attributes state.
 
-```tsx
+```tsx copy
 import { Fields, useAttributes } from '@wpmvc/fields';
 
 const fields = {
@@ -57,12 +61,14 @@ function MyForm() {
 }
 ```
 
+---
+
 ## Registering Custom Components
 
 You can extend or override field types by passing a `components` prop to `<Fields />`.
 This allows you to register your own custom field components or replace existing ones.
 
-```tsx
+```tsx copy
 import { Fields, useAttributes } from '@wpmvc/fields';
 import MyCustomField from './MyCustomField';
 
@@ -93,11 +99,13 @@ function MyForm() {
 }
 ```
 
+---
+
 ## Using Fields in Gutenberg Block InspectorControls
 
 You can easily use JSKit Fields inside a Gutenberg block’s `InspectorControls` panel to provide a dynamic, extensible settings UI for your block.
 
-```tsx
+```tsx copy
 import { InspectorControls } from '@wordpress/block-editor';
 import { PanelBody } from '@wordpress/components';
 import { Fields, useAttributes } from '@wpmvc/fields';
@@ -138,6 +146,8 @@ export default function Edit({ attributes, setAttributes }) {
 - Pass your block’s `attributes` and `setAttributes` directly to `<Fields />` for seamless integration.
 - You can use all field types and custom components as shown in previous sections.
 
+---
+
 ## Field Configuration Examples
 
 Each field type is configured using a simple JavaScript object. You can nest, combine, and customize these fields to create advanced forms.
@@ -146,7 +156,7 @@ Each field type is configured using a simple JavaScript object. You can nest, co
 
 A single-line text input.
 
-```js
+```js copy
 {
   type: 'text',
   label: 'Text Field',
@@ -159,7 +169,7 @@ A single-line text input.
 
 A numeric input with optional min, max, and step.
 
-```js
+```js copy
 {
   type: 'number',
   label: 'Number Field',
@@ -173,7 +183,7 @@ A numeric input with optional min, max, and step.
 
 A boolean toggle switch.
 
-```js
+```js copy
 {
   type: 'switch',
   label: 'Switch Field',
@@ -185,7 +195,7 @@ A boolean toggle switch.
 
 A single checkbox input.
 
-```js
+```js copy
 {
   type: 'checkbox',
   label: 'Checkbox Field',
@@ -197,7 +207,7 @@ A single checkbox input.
 
 Tabbed navigation for grouping fields.
 
-```js
+```js copy
 {
   type: 'tabs',
   label: 'Tabs Field',
@@ -218,7 +228,7 @@ Tabbed navigation for grouping fields.
 
 A color picker input.
 
-```js
+```js copy
 {
   type: 'color',
   label: 'Color Picker',
@@ -230,7 +240,7 @@ A color picker input.
 
 A palette or group of color pickers.
 
-```js
+```js copy
 {
   type: 'colors',
   label: 'Color Palette',
@@ -260,7 +270,7 @@ A palette or group of color pickers.
 
 Group multiple fields together.
 
-```js
+```js copy
 {
   type: 'group',
   label: 'Group Field',
@@ -275,7 +285,7 @@ Group multiple fields together.
 
 Border settings input.
 
-```js
+```js copy
 {
   type: 'border',
   label: 'Border Field',
@@ -287,7 +297,7 @@ Border settings input.
 
 Input for width, height, or other dimensions.
 
-```js
+```js copy
 {
   type: 'dimension',
   label: 'Dimension Field',
@@ -299,7 +309,7 @@ Input for width, height, or other dimensions.
 
 Display an informational, warning, or error notice.
 
-```js
+```js copy
 {
   type: 'notice',
   notice: 'This is an info notice.',
@@ -311,7 +321,7 @@ Display an informational, warning, or error notice.
 
 A collapsible panel for grouping fields.
 
-```js
+```js copy
 {
   type: 'panel',
   label: 'Panel Field',
@@ -326,7 +336,7 @@ A collapsible panel for grouping fields.
 
 A group of radio buttons.
 
-```js
+```js copy
 {
   type: 'radio',
   label: 'Radio Field',
@@ -342,7 +352,7 @@ A group of radio buttons.
 
 A dropdown select input.
 
-```js
+```js copy
 {
   type: 'select',
   label: 'Select Field',
@@ -358,7 +368,7 @@ A dropdown select input.
 
 A range slider input.
 
-```js
+```js copy
 {
   type: 'slider',
   label: 'Slider Field',
@@ -372,7 +382,7 @@ A range slider input.
 
 A group of toggle buttons.
 
-```js
+```js copy
 {
   type: 'toggleGroup',
   label: 'Toggle Group Field',
@@ -389,7 +399,7 @@ A group of toggle buttons.
 
 Repeatable group of fields.
 
-```js
+```js copy
 {
   type: 'repeater',
   label: 'Repeater Field',
@@ -405,7 +415,7 @@ Repeatable group of fields.
 
 Layout fields in a row.
 
-```js
+```js copy
 {
   type: 'row',
   label: 'Row Field',
