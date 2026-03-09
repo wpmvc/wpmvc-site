@@ -22,7 +22,16 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true
   },
-  reactStrictMode: true
+  reactStrictMode: true,
+  async redirects() {
+    return [
+      {
+        source: '/docs/database',
+        destination: '/docs/database/schema-builder',
+        permanent: true,
+      },
+    ]
+  },
 }
 
 export default withNextra(nextConfig)
