@@ -1,0 +1,96 @@
+---
+title: Dependency Isolation
+description: Learn how WpMVC uses PHPScoper to prevent namespace conflicts with other WordPress plugins.
+---
+
+
+# Dependency Isolation
+
+One of the most persistent challenges in WordPress development is **"Dependency Hell"**—a situation where multiple plugins load different versions of the same PHP library (e.g., Guzzle, Carbon, or the Google API PHP Client), leading to fatal errors, "white screens of death," and unpredictable behavior across the site.
+
+WpMVC solves this problem through a robust **Dependency Isolation** strategy powered by **[PHPScoper](https://github.com/humbug/php-scoper)**. This ensures that your plugin's dependencies never conflict with WordPress core or other installed plugins.
+
+---
+
+## How It Works
+
+During the build process, WpMVC uses PHPScoper to traverse all dependencies in your `vendor` directory and systematically prefix their namespaces with your unique plugin namespace.
+
+| Component | Original Namespace | Scoped Namespace |
+| :--- | :--- | :--- |
+| **Guzzle** | `GuzzleHttp\Client` | `MyPluginNamespace\GuzzleHttp\Client` |
+| **Google API** | `Google\Client` | `MyPluginNamespace\Google\Client` |
+| **Carbon** | `Carbon\Carbon` | `MyPluginNamespace\Carbon\Carbon` |
+
+By renaming these namespaces, WpMVC ensures that its internal libraries are private. If another plugin loads a different version of Guzzle, it will stay in the global `GuzzleHttp` namespace, while your plugin safely uses its scoped version.
+
+---
+
+## Engineering Benefits
+
+### 1. Zero Conflicts
+You can use any PHP library without worrying about whether it's already used by WordPress core, WooCommerce, or any other plugin.
+
+### 2. Version Stability
+Your plugin will always use the exact version of the library you specified in `composer.json`, ensuring consistency across different WordPress environments.
+
+### 3. Predictable Autoloading
+WpMVC updates the Composer autoloader to map the scoped namespaces correctly, so you can use them just like any other class in your plugin.
+
+---
+
+## Technical Implementation
+
+Isolation is handled automatically by the WpMVC build pipeline. The process involves:
+
+1. **Scoping**: All vendor classes are prefixed with your plugin namespace.
+2. **Patching**: Internal strings and manipulations within libraries are updated to reference the new namespaces.
+3. **Global Exposition**: WordPress-specific classes (like `WP_Error`, `wpdb`) and global functions are explicitly excluded from scoping so they remain accessible.
+
+---
+
+## Configuration
+
+Scoping behavior is controlled via the `dev-tools/scoper` directory in your plugin root.
+
+- **`global.config.php`**: Defines the prefix, allows you to "patch" files, and list namespaces or classes that should be excluded from scoping.
+- **`exclude.files.config.php`**: Lists specific files that should be left untouched by the scoping process (e.g., polyfills).
+
+For example, to exclude a specific namespace from being scoped in `global.config.php`:
+
+```php copy
+'exclude-namespaces' => [
+    'Elementor',
+    'Yoast',
+],
+```
+
+---
+
+## Usage Example
+
+When you use a scoped library in your code, you must use the full scoped namespace (usually handled via `use` statements).
+
+```php copy
+<?php
+
+namespace MyPluginNamespace\App\Http\Controllers;
+
+defined( 'ABSPATH' ) || exit;
+
+// WpMVC automatically scopes Guzzle to your namespace during build
+use MyPluginNamespace\GuzzleHttp\Client;
+use MyPluginNamespace\WpMVC\Routing\Response;
+
+class IntegrationController extends Controller
+{
+    public function fetch_data()
+    {
+        $client = new Client();
+        
+        $response = $client->request( 'GET', 'https://api.example.com' );
+        
+        return Response::send( json_decode( $response->getBody() ) );
+    }
+}
+```

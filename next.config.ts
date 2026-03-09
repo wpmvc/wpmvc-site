@@ -6,7 +6,15 @@ const withNextra = nextra({
   search: {
     codeblocks: false
   },
-  contentDirBasePath: '/docs'
+  contentDirBasePath: '/docs',
+  mdxOptions: {
+    rehypePrettyCodeOptions: {
+      theme: {
+        dark: 'material-theme-palenight', // Specify the dark theme here
+        light: 'material-theme-palenight' // Specify the light theme here
+      }
+    }
+  }
 })
 
 const nextConfig: NextConfig = {
@@ -14,7 +22,16 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true
   },
-  reactStrictMode: true
+  reactStrictMode: true,
+  async redirects() {
+    return [
+      {
+        source: '/docs/database',
+        destination: '/docs/database/schema-builder',
+        permanent: true,
+      },
+    ]
+  },
 }
 
 export default withNextra(nextConfig)

@@ -1,0 +1,136 @@
+---
+title: Commands
+description: Reference guide for all available NPM and Composer commands in the WpMVC framework.
+---
+
+import { Steps, Callout } from 'nextra/components'
+
+# Available Commands
+
+WpMVC provides a set of powerful commands to streamline your development workflow, from initial setup to production builds and localization.
+
+## Project Lifecycle
+
+These commands are used for initializing the project and preparing it for distribution.
+
+### `composer setup`
+The primary command for initializing a new project. It installs dependencies, handles namespace isolation (PHPScoper), and sets appropriate file permissions.
+
+```sh copy
+composer setup
+```
+
+### `composer build`
+Prepares the PHP dependencies for production by installing them without development tools and optimizing the autoloader.
+
+```sh copy
+composer build
+```
+
+### `pnpm build`
+A comprehensive build command that orchestrates the entire production build process, including PHP dependencies, asset minification (JS/CSS), i18n JSON generation, and final compression.
+
+```sh copy
+pnpm build
+```
+
+---
+
+## Development & Quality
+
+Commands used during active development to run local servers and ensure code quality.
+
+### `pnpm start`
+Starts the WordPress scripts development server for assets.
+
+```sh copy
+pnpm start
+```
+
+### `pnpm start:hot`
+Starts the development server with **Hot Module Replacement (HMR)** enabled.
+
+```sh copy
+pnpm start:hot
+```
+
+### `pnpm format`
+Automatically formats JavaScript and CSS files using WordPress coding standards.
+
+```sh copy
+pnpm format
+```
+
+### `composer format`
+Automatically fixes PHP coding standard violations using PHP CodeSniffer Beautifier (PHPCBF).
+
+```sh copy
+composer format
+```
+
+### `composer phpcs`
+Runs PHP CodeSniffer to check for coding standard violations without fixing them.
+
+```sh copy
+composer phpcs
+```
+
+---
+
+## Localization (i18n)
+
+WpMVC simplifies the process of making your plugin translation-ready.
+
+### `composer i18n`
+Generates the `.pot` and `.po` files by scanning the project for translatable strings in PHP and JS files.
+
+```sh copy
+composer i18n
+```
+
+### `composer i18n:build`
+Generates the localization JSON files required for WordPress to load translations in JavaScript.
+
+```sh copy
+composer i18n:build
+```
+
+### `pnpm fixtextdomain`
+A utility to ensure all translatable strings have the correct text domain.
+
+```sh copy
+pnpm fixtextdomain
+```
+
+---
+
+## Testing
+
+Tools for ensuring your plugin's reliability through automated tests.
+
+### `composer test:setup`
+Sets up the local WordPress testing environment (database and core files).
+
+```sh copy
+composer test:setup
+```
+
+### `composer test`
+Executes the PHPUnit test suite.
+
+```sh copy
+composer test
+```
+
+---
+
+## Internal Utilities
+
+These commands are typically called by other scripts but can be run manually if needed.
+
+| Command | Description |
+| :--- | :--- |
+| `composer add-prefix` | Runs PHPScoper to isolate dependencies and regenerates the autoloader. |
+| `composer permission` | Sets executable permissions for framework binaries (phpcs, phpcbf, phpunit). |
+| `pnpm minify` | Triggers the production asset build process using `@wordpress/scripts`. |
+| `pnpm compress` | Compresses assets into a distribution-ready zip file. |

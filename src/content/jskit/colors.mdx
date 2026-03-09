@@ -12,7 +12,7 @@ The `@wpmvc/colors` package provides a unified color system for WordPress-based 
 
 Add the package to your project:
 
-```sh npm2yarn
+```sh npm2yarn copy
 npm install @wpmvc/colors
 ```
 
@@ -25,7 +25,7 @@ npm install @wpmvc/colors
 
 ---
 
-## 1. Injecting CSS Variables
+## Injecting CSS Variables
 
 To make the colors available as CSS variables throughout your application, use the `ColorVariables` component.
 
@@ -33,7 +33,7 @@ To make the colors available as CSS variables throughout your application, use t
 
 Place this component once in your application root.
 
-```tsx
+```tsx copy filename="src/admin/App.tsx"
 import { ColorVariables } from '@wpmvc/colors';
 
 const App = () => (
@@ -48,7 +48,7 @@ const App = () => (
 
 You can override specific color groups or base colors via the `colors` prop.
 
-```tsx
+```tsx copy
 <ColorVariables 
     colors={{
         primary: '#3b82f6', // Will auto-generate shades 25-900 for blue
@@ -62,11 +62,11 @@ You can override specific color groups or base colors via the `colors` prop.
 
 ---
 
-## 2. Accessing Colors in React
+## Accessing Colors in React
 
 Use the `useColors` hook to access the current color palette with full IntelliSense support.
 
-```tsx
+```tsx copy
 import { useColors } from '@wpmvc/colors';
 
 const MyComponent = () => {
@@ -82,11 +82,11 @@ const MyComponent = () => {
 
 ---
 
-## 3. WordPress Admin Integration
+## WordPress Admin Integration
 
 The `ColorWrapper` component maps your custom colors to standard WordPress CSS variables, ensuring components like `@wordpress/components` match your brand style.
 
-```tsx
+```tsx copy
 import { ColorWrapper } from '@wpmvc/colors';
 
 const MySettingsPage = () => (
@@ -99,7 +99,7 @@ const MySettingsPage = () => (
 
 ---
 
-## 4. CSS Variable Naming Convention
+## CSS Variable Naming Convention
 
 By default, the package generates variables with the `--wpmvc-` prefix:
 
@@ -111,7 +111,7 @@ By default, the package generates variables with the `--wpmvc-` prefix:
 
 ---
 
-## 5. Default Palette
+## Default Palette
 
 The default palette includes:
 

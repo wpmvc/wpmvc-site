@@ -1,0 +1,142 @@
+---
+title: Dependent Manager
+description: Engineering high-availability plugin ecosystems through robust dependency guarding and runtime version validation.
+---
+
+
+# Dependent Manager
+
+The **WpMVC Dependent Manager** is a critical residency component designed to ensure system stability across multi-plugin environments. It provides high-reliability version validation and dependency enforcement, proactively preventing runtime exceptions and system failures caused by incompatible plugin versions.
+
+---
+
+## Technical Integration
+
+### Installation
+
+Integrate the manager into your service stack via Composer:
+
+```bash copy
+composer require wpmvc/dependent-manager
+```
+
+---
+
+## Architecture & Design Strategy
+
+In complex WordPress ecosystems, high-level modules often depend on a core framework or a primary plugin. The `DependentManager` acts as a **Runtime Guard**, verifying that the environment satisfies minimum version requirements before dependent business logic is executed.
+
+### Core Engineering Principles
+*   **Fail-Safe Execution**: Prevents code execution that relies on unstable APIs or features not present in the current environment.
+*   **UX-First Recovery**: Replaces generic system failures with actionable, context-aware administrative interfaces to guide the user toward a resolution.
+*   **Zero-Conflict Validation**: Optimized, lightweight logic designed to execute at the earliest stage of the plugin lifecycle with minimal overhead.
+
+---
+
+## Implementation Workflow
+
+Follow this standardized workflow to integrate runtime dependency guarding into your ecosystem.
+
+### Step 0: Global Requirement Definition
+In the entry point of the **Core Plugin**, define a global constant to establish the minimum version requirement for all extensions. Increment this value during breaking changes to ensure ecosystem synchronization.
+
+```php copy filename="main-plugin.php"
+/**
+ * Core Plugin Entry Point
+ */
+define( 'MY_PLUGIN_DEPENDENT_VERSION', '1.0.0' );
+```
+
+### Step 1: Instance Initialization
+Initialize the `Manager` within the **Addon Plugin** using standardized versioning constants.
+
+```php copy filename="addon-entry.php"
+use WpMVC\DependentManager\Manager;
+
+// Establish the current version of the extension
+define( 'MY_ADDON_DEPENDENT_VERSION', '1.0.0' );
+
+// Initialize the Guard with dynamic Core requirements
+$dependent_manager = new Manager(
+    MY_PLUGIN_DEPENDENT_VERSION, // Global requirement from Core
+    MY_ADDON_DEPENDENT_VERSION,  // Current version of this Addon
+    'Main Plugin',               // Primary Plugin Identifier
+    'Pro Addon'                  // Addon Identifier
+);
+```
+
+### Step 2: Lifecycle Execution Guard
+Execute the compatibility check at the earliest phase of the boot sequence. If the environment is deemed incompatible, terminate initialization immediately to prevent dependency-related crashes.
+
+```php copy
+// Early lifecycle validation
+if ( ! $dependent_manager->is_compatible() ) {
+    return; // Termination initiated; Manager handles UI orchestration automatically
+}
+
+// Proceed with high-level application booting
+$app->boot();
+```
+
+### Step 3: Production-Grade Implementation
+For enterprise deployments, the dependency check should be orchestrated within the `plugins_loaded` hook to ensure all system components are available for comparison.
+
+```php copy filename="addon-entry.php"
+/**
+ * Orchestrates the bootstrapping sequence of the Pro Addon.
+ */
+add_action( 'plugins_loaded', function () use ( $application ): void {
+    // 1. Verify Core presence
+    if ( ! defined( 'MY_PLUGIN_DEPENDENT_VERSION' ) ) {
+        return;
+    }
+
+    // 2. Define Addon versioning
+    define( 'MY_ADDON_DEPENDENT_VERSION', '1.0.0' );
+
+    // 3. Initialize Management Layer
+    $dependent_manager = new Manager( 
+        MY_PLUGIN_DEPENDENT_VERSION,
+        MY_ADDON_DEPENDENT_VERSION,
+        "Main Plugin",
+        "Pro Addon"
+    );
+
+    // 4. Runtime Guard
+    if ( ! $dependent_manager->is_compatible() ) {
+        return; // Initialization aborted
+    }
+
+    // 5. Safe Lifecycle Execution
+    do_action( 'before_load_pro_addon' );
+
+    require_once __DIR__ . '/app/Helpers/helper.php';
+    $application->load();
+
+    do_action( 'after_load_pro_addon' );
+});
+```
+
+---
+
+## Lifecycle & UX Orchestration
+
+When a version mismatch is detected, the manager automatically orchestrates several recovery mechanisms:
+
+1.  **Lifecycle Interception**: Immediately returns `false` to the caller, signaling a mandatory initialization abort.
+2.  **State-Aware Admin Interface**: If the request context is within the WordPress Admin, the manager hooks into `admin_notices` to render a high-visibility, professional notification.
+3.  **Contextual Actionable Recovery**: The interface provides direct navigation paths for resolution:
+    *   **Update Interface**: Directs the administrator to the core update system.
+    *   **Management Dashboard**: Provides quick access to the standard plugin management interface.
+4.  **Responsive Design**: The UI is optimized for diverse administrative environments, including mobile and desktop viewport profiles.
+
+---
+
+## Enterprise Use Cases
+
+| Category | Engineering Strategy |
+| :--- | :--- |
+| **Breaking Change Protection** | Proactively neutralizing extensions when the core framework introduces major API shifts. |
+| **Framework Consistency** | Ensuring "Pro" modularity is only active when the underlying framework meets specific feature-set versions. |
+| **API Version Locking** | Protecting system integrity when underlying library versions are downgraded or fall out of alignment. |
+| **Stability Enforcement** | Mitigating the risk of partial system updates through global version synchronization. |

@@ -1,0 +1,246 @@
+---
+title: Controllers
+description: Controllers are the glue between your routes and business logic, handling incoming requests and returning responses.
+---
+
+import { Callout } from 'nextra/components'
+
+# Controllers
+
+<a name="introduction"></a>
+## Introduction
+
+Instead of defining all of your request handling logic as closures in your route files, you may wish to organize this behavior using "controller" classes. Controllers can group related request handling logic into a single class. For example, a `UserController` class might handle all incoming requests related to users, including showing, creating, updating, and deleting users. By default, controllers are stored in the `app/Http/Controllers` directory.
+
+<a name="writing-controllers"></a>
+---
+ 
+ ## Writing Controllers
+
+<a name="basic-controllers"></a>
+### Basic Controllers
+
+To quickly generate a new controller, you may create a class in your `app/Http/Controllers` directory. Controllers are not required to extend a base class.
+
+```php copy
+<?php
+
+namespace MyPluginNamespace\App\Http\Controllers;
+
+defined( "ABSPATH" ) || exit;
+
+use MyPluginNamespace\WpMVC\RequestValidator\Request;
+use MyPluginNamespace\WpMVC\Routing\Response;
+
+class UserController
+{
+    /**
+     * Show the profile for the given user.
+     *
+     * @param  Request  $request
+     * @return array
+     */
+    public function show( Request $request ) {
+        return Response::send( [
+            'user' => [
+                'id'   => $request->get_param( 'id' ),
+                'name' => 'John Doe',
+            ]
+        ] );
+    }
+}
+```
+
+Once you have written a controller class and method, you may define a route to the controller method like so:
+
+```php copy
+use MyPluginNamespace\App\Http\Controllers\UserController;
+use MyPluginNamespace\WpMVC\Routing\Route;
+
+Route::get( 'user/{id}', [ UserController::class, 'show' ] );
+```
+
+When an incoming request matches the specified route URI, the `show` method on the `MyPluginNamespace\App\Http\Controllers\UserController` class will be invoked and the route parameters will be passed to the method.
+
+<a name="dependency-injection-and-controllers"></a>
+---
+ 
+ ## Dependency Injection and Controllers
+
+<a name="constructor-injection"></a>
+### Constructor Injection
+
+The WpMVC [service container](/architecture/container) is used to resolve all WpMVC controllers. As a result, you are able to type-hint any dependencies your controller may need in its constructor. The declared dependencies will automatically be resolved and injected into the controller instance:
+
+```php copy
+<?php
+
+namespace MyPluginNamespace\App\Http\Controllers;
+
+defined( "ABSPATH" ) || exit;
+
+use MyPluginNamespace\App\Repositories\UserRepository;
+
+class UserController
+{
+    /**
+     * The user repository instance.
+     */
+    protected UserRepository $user_repository;
+
+    /**
+     * Create a new controller instance.
+     *
+     * @param  UserRepository  $user_repository
+     * @return void
+     */
+    public function __construct( UserRepository $user_repository ) {
+        $this->user_repository = $user_repository;
+    }
+}
+```
+
+<a name="method-injection"></a>
+### Method Injection
+
+In addition to constructor injection, you may also type-hint dependencies on your controller's methods. A common use-case for method injection is injecting the `MyPluginNamespace\WpMVC\RequestValidator\Request` instance into your controller methods:
+
+```php copy
+<?php
+
+namespace MyPluginNamespace\App\Http\Controllers;
+
+defined( "ABSPATH" ) || exit;
+
+use MyPluginNamespace\WpMVC\RequestValidator\Request;
+use MyPluginNamespace\WpMVC\Routing\Response;
+
+class UserController
+{
+    /**
+     * Store a new user.
+     *
+     * @param  Request  $request
+     * @return array
+     */
+    public function store( Request $request ) {
+        $name = $request->get_param( 'name' );
+
+        // Store the user...
+
+        return Response::send( [ 'status' => 'success' ] );
+    }
+}
+```
+
+If your controller method is also expecting input from a route parameter, list your route arguments after your other dependencies. For example, if your route is defined like so:
+
+```php copy
+use MyPluginNamespace\App\Http\Controllers\UserController;
+use MyPluginNamespace\WpMVC\Routing\Route;
+
+Route::put( 'user/{id}', [ UserController::class, 'update' ] );
+```
+
+You may still type-hint the `Request` and access your `id` parameter by defining your controller method as follows:
+
+```php copy
+<?php
+
+namespace MyPluginNamespace\App\Http\Controllers;
+
+defined( "ABSPATH" ) || exit;
+
+use MyPluginNamespace\WpMVC\RequestValidator\Request;
+use MyPluginNamespace\WpMVC\Routing\Response;
+
+class UserController
+{
+    /**
+     * Update the given user.
+     *
+     * @param  Request  $request
+     * @param  string   $id
+     * @return array
+     */
+    public function update( Request $request, $id ) {
+        // ...
+
+        return Response::send( [ 'status' => 'updated' ] );
+    }
+}
+```
+
+
+<a name="controller-middleware"></a>
+---
+ 
+ ## Controller Middleware
+
+[Middleware](/docs/middleware) may be assigned to the controller's routes in your route files:
+
+```php copy
+use MyPluginNamespace\App\Http\Controllers\UserController;
+use MyPluginNamespace\WpMVC\Routing\Route;
+
+Route::get( 'profile', [ UserController::class, 'show' ] )->middleware( 'auth' );
+```
+
+---
+
+<a name="resource-controllers"></a>
+## Resource Controllers
+
+WpMVC resource routing assigns typical CRUD routes to a controller with a single line of code. For example, you may wish to create a controller that handles all HTTP requests for "photos" stored by your application.
+
+```php copy
+use MyPluginNamespace\App\Http\Controllers\PhotoController;
+use MyPluginNamespace\WpMVC\Routing\Route;
+
+Route::resource( 'photos', PhotoController::class );
+```
+
+### Actions Handled By Resource Controllers
+
+| Verb | URI | Action | Route Name |
+| :--- | :--- | :--- | :--- |
+| GET | `/photos` | `index` | `photos.index` |
+| POST | `/photos` | `store` | `photos.store` |
+| GET | `/photos/{photo}` | `show` | `photos.show` |
+| PATCH | `/photos/{photo}` | `update` | `photos.update` |
+| DELETE | `/photos/{photo}` | `delete` | `photos.destroy` |
+
+<a name="restful-partial-resource-routes"></a>
+### Partial Resource Routes
+
+When declaring a resource route, you may specify a subset of actions the controller should handle instead of the full set of default actions:
+
+```php copy
+use MyPluginNamespace\App\Http\Controllers\PhotoController;
+use MyPluginNamespace\WpMVC\Routing\Route;
+
+Route::resource( 'photos', PhotoController::class )->only( [
+    'index', 'show'
+] );
+
+Route::resource( 'photos', PhotoController::class )->except( [
+    'store', 'update', 'delete'
+] );
+```
+
+<a name="restful-supplementing-resource-controllers"></a>
+### Supplementing Resource Controllers
+
+If you need to add additional routes to a resource controller beyond the default set of resource routes, you should define those routes before your call to the `Route::resource` method; otherwise, the routes defined by the `resource` method may unintentionally take precedence over your supplemental routes:
+
+```php copy
+use MyPluginNamespace\App\Http\Controllers\PhotoController;
+use MyPluginNamespace\WpMVC\Routing\Route;
+
+Route::get( 'photos/popular', [ PhotoController::class, 'popular' ] );
+Route::resource( 'photos', PhotoController::class );
+```
+
+<Callout type="info">
+  Remember to keep your controllers focused. If you find yourself routinely needing methods outside of the typical set of resource actions, you may wish to split your controller into two smaller controllers.
+</Callout>

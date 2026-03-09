@@ -1,0 +1,188 @@
+---
+title: Data Transfer Objects (DTO)
+description: Learn how to use WpMVC DTOs to pass structured, type-safe data between your application layers.
+---
+
+import { Callout } from 'nextra/components'
+
+# Data Transfer Objects (DTO)
+
+A **Data Transfer Object (DTO)** is a simple object used to pass data between different layers of your application, such as from a Controller to a Repository. DTOs ensure that the data being passed is structured, type-safe, and validated, preventing the "array of mystery" anti-pattern in your WordPress plugin.
+
+WpMVC provides a powerful **Base DTO** class that uses PHP Reflection to automate the conversion of objects into associative arrays. This is particularly useful for database operations where you need a clean, structured array of values.
+
+### Key Features
+- **Automatic Serialization**: Converts camelCase or snake_case properties into arrays via `to_array()`.
+- **Initialization Awareness**: Only includes properties that have been explicitly initialized.
+- **Selective Exclusion**: Easily exclude specific properties (like `id`) from being included in database payloads.
+- **Recursive Support**: Automatically converts nested DTOs or arrays of DTOs into arrays.
+
+---
+
+## Defining a DTO
+
+To create a DTO, extend the base `WpMVC\DTO\DTO` class. By convention, DTOs should be placed in the `app/DTO` directory.
+
+#### Generating DTOs
+
+Use the `make:dto` Artisan command to generate a new DTO class:
+
+```bash
+php artisan make:dto PostDTO
+```
+
+Define your properties and their corresponding getters and setters:
+
+```php copy
+<?php
+
+namespace MyPluginNamespace\App\DTO;
+
+defined( 'ABSPATH' ) || exit;
+
+use MyPluginNamespace\WpMVC\DTO\DTO;
+
+class PostDTO extends DTO
+{
+    protected int $id;
+    protected string $title;
+    protected string $content;
+    protected bool $is_published;
+
+    public function set_id( int $id ): self
+    {
+        $this->id = $id;
+        return $this;
+    }
+
+    public function get_id(): int
+    {
+        return $this->id;
+    }
+
+    public function set_title( string $title ): self
+    {
+        $this->title = $title;
+        return $this;
+    }
+
+    public function get_title(): string
+    {
+        return $this->title;
+    }
+
+    // Boolean specific getter: is_{property_name}
+    public function is_is_published(): bool
+    {
+        return $this->is_published;
+    }
+}
+```
+
+<Callout type="info">
+  **Naming Convention**: The `to_array()` method expects getters to follow the `get_{property_name}` pattern, and booleans to follow the `is_{property_name}` pattern.
+</Callout>
+
+---
+
+## Filtering and Serialization
+
+### Handling Uninitialized Properties
+
+The `to_array()` method is intelligent. If you haven't set a value for a property (e.g., `$content`), it will be skipped entirely in the resulting array. This is ideal for `PATCH` requests where you only want to update a subset of columns.
+
+### Excluding Properties
+
+By default, the `id` property is excluded from the `to_array()` output to prevent accidentally overwriting primary keys during database updates. You can customize this list using `$exclude_to_array` or the `set_exclude_to_array()` method.
+
+```php copy
+<?php
+
+namespace MyPluginNamespace\App\DTO;
+
+defined( 'ABSPATH' ) || exit;
+
+use MyPluginNamespace\WpMVC\DTO\DTO;
+
+class UserDTO extends DTO
+{
+    protected array $exclude_to_array = [ 'id', 'password', 'internal_meta' ];
+}
+```
+
+---
+
+## Recursive DTOs
+
+If your DTO contains other DTOs (either as a single property or an array of objects), `to_array()` will recursively convert them.
+
+```php copy filename="app/DTO/OrderDTO.php"
+class OrderDTO extends DTO {
+    protected array $items; // An array of ItemDTO objects
+
+    public function get_items(): array {
+        return $this->items;
+    }
+}
+
+// Result of $orderDto->to_array():
+// [
+//    'items' => [
+//        ['name' => 'Pizza', 'price' => 10],
+//        ['name' => 'Soda', 'price' => 2]
+//    ]
+// ]
+```
+
+---
+
+## Usage Patterns
+
+DTOs are typically used to bridge the gap between a Request and a Repository, providing a clean contract between layers.
+
+### In a Controller
+
+```php copy
+<?php
+
+namespace MyPluginNamespace\App\Http\Controllers;
+
+defined( 'ABSPATH' ) || exit;
+
+use MyPluginNamespace\App\DTO\PostDTO;
+use MyPluginNamespace\App\Repositories\PostRepository;
+
+class PostController extends Controller
+{
+    public function store( $request, PostRepository $repo )
+    {
+        $dto = ( new PostDTO() )
+            ->set_title( $request['title'] )
+            ->set_content( $request['content'] );
+
+        $repo->create( $dto );
+    }
+}
+```
+
+### In a Repository
+
+```php copy
+<?php
+
+namespace MyPluginNamespace\App\Repositories;
+
+defined( 'ABSPATH' ) || exit;
+
+use MyPluginNamespace\WpMVC\DTO\DTO;
+use MyPluginNamespace\WpMVC\Database\Query\Builder;
+
+class PostRepository extends Repository
+{
+    public function create( DTO $dto )
+    {
+        // to_array() returns only the initialized properties
+        return $this->get_query_builder()->insert_get_id( $dto->to_array() );
+    }
+}
+```

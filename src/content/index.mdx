@@ -15,37 +15,50 @@ Whether you're building a simple utility or a complex SaaS-style plugin, WpMVC p
 
 WordPress development shouldn't feel outdated. WpMVC bridges the gap between traditional WordPress hooks and modern software engineering patterns.
 
-- **🚀 Speed to Production**: Scaffold an entire plugin in seconds using the Artisan CLI.
-- **🏗️ Structured Architecture**: Follows a clean MVC (Model-View-Controller) pattern.
-- **💉 Dependency Injection**: Decouple your code with a powerful container-based DI system.
-- **✨ Laravel-Like Syntax**: If you know Laravel, you'll feel right at home with our Routing and Database systems.
-- **⚛️ Modern React Tools**: Build stunning admin interfaces with JSKit—our React component library tailored for WordPress.
+- **Speed to Production**: Scaffold a robust, production-ready plugin in seconds using the Artisan CLI.
+- **Structured Architecture**: Follows a clean MVC pattern, keeping your business logic isolated from WordPress hooks and legacy global state.
+- **Dependency Injection**: Decouple your services with a powerful Service Container for superior testability and maintenance.
+- **Laravel-Like Syntax**: Familiar routing, database, and validation systems that make developers familiar with modern frameworks feel right at home.
+- **Dependency Isolation**: Built-in PHPScoper support prevents fatal conflicts with other plugins or WordPress core.
+- **Modern Admin UI**: Build stunning, high-performance admin interfaces with JSKit—our React component library tailored for WordPress.
 
 ---
 
-## Core Modules
+## The Necessity of WpMVC
 
-### [Routing](./routing)
-Manage your REST API and AJAX endpoints using a clean, declarative routing system. Supports middleware, route grouping, and resource controllers.
+Building enterprise-grade WordPress plugins in today's ecosystem requires more than just hooks and filters. As plugins grow in complexity, developers often find themselves reinventing the wheel for routing, validation, and database management.
 
-### [Database & Eloquent](./database)
-A fluent SQL query builder and Eloquent ORM. Manage your database schema with migrations (Blueprint) and handle data with powerful models and relationships.
+WpMVC fills this gap by providing a standardized architectural foundation. Instead of writing ad-hoc code for every new feature, you leverage a battle-tested architecture. This consistency is crucial for teams and long-term projects where maintainability is a top priority.
 
-### [JSKit](./jskit/components)
-A collection of professional React packages designed for WordPress:
-- **Fields**: Declarative form builder.
-- **Components**: High-quality UI components for Admin.
-- **Data**: Standardized state management.
-- **Colors**: Unified design system.
+### Core Benefits
+
+- **Maintainability**: Clear separation of concerns means your code is easier to read, test, and refactor.
+- **Security by Default**: Built-in validation and CSRF protection help you build secure endpoints without extra effort.
+- **Development Velocity**: With Artisan generators, you spend less time on boilerplate and more time on core business logic.
+- **Scalability**: The framework is designed to handle everything from small utilities to massive, enterprise-grade plugins.
 
 ---
 
-## Installation Guide in 60 Seconds
+## Future Risks without WpMVC
 
-Ready to build something amazing?
+Building a complex plugin without a structured framework often leads to technical debt that becomes unmanageable over time.
 
-1. **Install via Composer**: `composer create-project wpmvc/wpmvc my-plugin`
-2. **Setup**: Run `php artisan app:setup`
-3. **Build**: Start creating routes, controllers, and models.
+### 1. Dependency Hell
+Without WpMVC's automated dependency isolation (PHPScoper), your plugin is vulnerable to fatal conflicts if another plugin loads a different version of a common library like Guzzle or Carbon. This is one of the leading causes of plugin-related site crashes.
 
-[**Explore the Installation Guide →**](./installation)
+### 2. The Spaghetti Code Trap
+As you add features, a hook-heavy codebase often becomes a "spaghetti" of global functions and unstructured files. This makes onboarding new developers difficult and increases the risk of introducing bugs during updates.
+
+### 3. Lack of Standardization
+Without a unified way to handle requests, data, and responses, different parts of your plugin may follow conflicting patterns. This inconsistency leads to fragile code that is difficult to maintain and nearly impossible to unit test effectively.
+
+---
+
+## WpMVC and Vibe Coding
+
+In the era of AI-assisted development (Vibe Coding), WpMVC provides the perfect structure for pair programming with agents.
+
+- **AI-Ready Architecture**: Standardized MVC, Repository, and DTO patterns make it easier for AI agents to understand your codebase and generate accurate modifications.
+- **Predictable Structure**: A consistent directory layout ensures that agents can navigate your project with high precision, reducing the risk of misplaced files or logic.
+- **Generator Synergy**: Use Artisan commands to scaffold code that automatically follows framework conventions, giving AI agents a rock-solid starting point.
+- **Enhanced Context**: Strong typing through DTOs and models provides the necessary context for agents to generate high-quality, type-safe code.

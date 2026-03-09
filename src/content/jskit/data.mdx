@@ -12,7 +12,7 @@ The `@wpmvc/data` package provides a standardized way to manage application stat
 
 Add the package to your project:
 
-```sh npm2yarn
+```sh npm2yarn copy
 npm install @wpmvc/data
 ```
 
@@ -25,7 +25,7 @@ The package supports two main types of stores:
 
 ---
 
-## 1. CRUD Store
+## CRUD Store
 
 The CRUD store provides built-in actions and selectors for standard REST operations.
 
@@ -33,7 +33,7 @@ The CRUD store provides built-in actions and selectors for standard REST operati
 
 Register a CRUD store by providing a unique name and the REST API path.
 
-```typescript
+```typescript copy filename="src/admin/data/products.ts"
 import { registerCrudStore } from '@wpmvc/data';
 
 registerCrudStore({
@@ -61,13 +61,13 @@ registerCrudStore({
 
 ---
 
-## 2. Values Store
+## Values Store
 
 The Values store is optimized for managing flat objects or settings.
 
 ### Registration
 
-```typescript
+```typescript copy filename="src/admin/data/settings.ts"
 import { registerValuesStore } from '@wpmvc/data';
 
 registerValuesStore({
@@ -90,13 +90,13 @@ registerValuesStore({
 
 ---
 
-## 3. React Hooks
+## React Hooks
 
 The package provides convenient hooks to interact with your stores in React components.
 
 ### useCrudStoreData & useCrudStore
 
-```tsx
+```tsx copy
 import { useCrudStoreData, useCrudStore } from '@wpmvc/data';
 
 const MyComponent = () => {
@@ -126,7 +126,7 @@ const MyComponent = () => {
 
 ### useValuesStoreData & useValuesStore
 
-```tsx
+```tsx copy
 import { useValuesStoreData, useValuesStore } from '@wpmvc/data';
 
 const SettingsPanel = () => {
@@ -151,7 +151,7 @@ const SettingsPanel = () => {
 
 Used to access and manage the query state for CRUD stores (pagination, searching, sorting).
 
-```tsx
+```tsx copy
 import { useCrudQueryParams } from '@wpmvc/data';
 
 const Pagination = () => {

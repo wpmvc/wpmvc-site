@@ -1,0 +1,109 @@
+---
+title: Database Migrations
+description: Efficiently manage your plugin's database schema changes with WpMVC migrations.
+---
+
+import { Callout } from 'nextra/components'
+
+# Database Migrations
+
+<a name="introduction"></a>
+## Introduction
+
+WpMVC migrations provide a structured way to manage database schema changes over time. Unlike traditional Laravel migrations that run via the CLI and often require SSH access, WpMVC migrations are specifically designed for the WordPress environment.
+
+Key differences from Laravel migrations:
+- **Admin-Side Execution**: Migrations run automatically when an administrator visits the WordPress dashboard (`wp-admin`).
+- **One-per-Request Runner**: To prevent timeouts during heavy schema changes, WpMVC runs only **one migration per request**.
+- **Self-Tracking**: WpMVC tracks executed migrations in the WordPress options table, ensuring each migration runs exactly once.
+
+<Callout type="warning">
+  **Important**: Initial database schema creation should be handled in `database/Setup.php`, not in migrations. Migrations are intended for one-time tasks or schema adjustments that occur after plugin activation.
+</Callout>
+
+---
+
+<a name="creating-migrations"></a>
+## Creating Migrations
+
+To create a new migration, use the `make:migration` Artisan command:
+
+```bash
+php artisan make:migration UpdateUserRoles
+```
+
+This will create a new migration file in your plugin's `database/Migrations` directory.
+
+---
+
+<a name="migration-structure"></a>
+## Migration Structure
+
+A migration class implements the `WpMVC\Contracts\Migration` interface and must define an `execute` method.
+
+```php
+<?php
+
+namespace MyPluginNamespace\Database\Migrations;
+
+defined( "ABSPATH" ) || exit;
+
+use WpMVC\Contracts\Migration;
+use MyPluginNamespace\App\Models\User;
+
+class UpdateUserRoles implements Migration {
+    /**
+     * Run the migrations.
+     *
+     * @return bool If true migration is completed. if false then migration will execute next request too.
+     */
+    public function execute(): bool {
+        // Example: Perform a one-time data transformation
+        $users = User::all();
+        
+        foreach($users as $user) {
+            if($user->is_old_format()) {
+                $user->migrate_to_new_format();
+                $user->save();
+            }
+        }
+
+        return true;
+    }
+}
+```
+
+### The Return Value
+The `execute()` method must return a `bool`:
+- `true`: The migration is complete and will not run again.
+- `false`: The migration is incomplete (e.g., timed out) and WpMVC will attempt to run it again on the next administrative request.
+
+---
+
+<a name="registering-migrations"></a>
+## Registering Migrations
+
+After creating a migration, you must register it in your plugin's `config/app.php` file under the `migrations` key:
+
+```php
+'migrations' => [
+    'create-users-table' => \MyPluginNamespace\Database\Migrations\CreateUsersTable::class,
+],
+```
+
+The array key (`create-users-table`) is used as a unique identifier to track the migration's execution status.
+
+---
+
+<a name="how-it-works"></a>
+## How It Works
+
+WpMVC uses a `MigrationServiceProvider` that hooks into WordPress's `admin_init`. 
+
+1. It retrieves the registered migrations from your configuration.
+2. It checks which migrations have already been executed by looking at the `migration_db_option_key` in the `wp_options` table.
+3. It finds the first unexecuted migration.
+4. It executes that migration and, if successful (`true` returned), marks it as completed.
+5. It then **stops processing** additional migrations for that request.
+
+This sequential approach ensures that even if you have multiple heavy migrations, they won't crash your server or hit PHP execution limits, as they spread out over subsequent admin page loads.
