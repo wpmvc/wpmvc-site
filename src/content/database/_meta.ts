@@ -5,5 +5,6 @@ export default {
   relationships: 'Relationships',
   'collections': 'Collections',
   'mutators-and-casting': 'Mutators & Casting',
-  'factories-and-seeding': 'Factories & Seeding'
+  'factories-and-seeding': 'Factories & Seeding',
+  'migrations': 'Migrations'
 }

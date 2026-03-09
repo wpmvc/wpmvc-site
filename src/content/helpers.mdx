@@ -109,6 +109,53 @@ $is_flat = Helpers::is_one_level_array( [ 'a', 'b', 'c' ] ); // true
 
 ---
 
+### Date & Time Manipulation
+
+The `Date` class extends PHP's native `DateTime` to provide WordPress-aware defaults and a chainable API for complex calendar math and comparisons.
+
+#### Initialization
+By default, the constructor initializes to the current time using `wp_timezone()`.
+
+```php copy
+use WpMVC\Helpers\Date;
+
+$now = new Date();
+$tomorrow = new Date( 'tomorrow' );
+$timezone = new Date( 'tomorrow', new \DateTimeZone( 'America/New_York' ) );
+$specific = Date::now();
+```
+
+#### Arithmetic
+Perform accurate calendar math that correctly handles varying month lengths and leap years.
+
+```php copy
+$date = new Date( '2024-02-29' );
+$date->add_years( 1 ); // Returns 2025-03-01 (Correct overflow)
+
+$date->sub_months( 2 )->add_days( 5 );
+$date->add_timestamp( 3600 ); // Add 1 hour in seconds
+```
+
+#### Relative Checks & Comparisons
+Simple boolean checks for common date states.
+
+```php copy
+$date->is_today();      // bool
+$date->is_past();       // bool
+$date->is_weekend();    // bool
+$date->is_same_day( '2023-10-25' ); 
+```
+
+#### Formatting & Boundaries
+```php copy
+echo $date->start_of_day(); // "Wed Oct 25 2023 00:00:00 GMT+0000"
+echo $date->to_iso8601();   // "2023-10-25T00:00:00+00:00"
+echo $date->to_date_string(); // "2023-10-25"
+echo $date->getTimestamp();   // 1698192000
+```
+
+---
+
 ### Request Handling
 
 #### `request`

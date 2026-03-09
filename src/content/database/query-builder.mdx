@@ -123,7 +123,7 @@ WpMVC provides a powerful `paginate` method to handle result segmenting. The `pa
 $users = User::query()->paginate( 1, 15 );
 ```
 
-The `paginate` method returns a `WpMVC\Database\Pagination\LengthAwarePaginator` instance, which provides methods for the total count, total pages, and is convertible to an array or JSON.
+The `paginate` method returns a `WpMVC\Database\Pagination\Paginator` instance, which provides methods for the total count, total pages, and is convertible to an array or JSON.
 
 ```php
 $users = User::query()->paginate( 1, 15 );

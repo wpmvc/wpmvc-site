@@ -1,6 +1,7 @@
 export default {
   index: '',
   installation: '',
+  commands: 'Available Commands',
   architecture: 'Architecture Concepts',
   routing: '',
   controllers: '',
